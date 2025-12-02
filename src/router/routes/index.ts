@@ -39,4 +39,6 @@ export const LoginRoute: AppRouteRecordRaw = {
 
 // Basic routing without permission
 // 未经许可的基本路由
-export const basicRoutes = [LoginRoute, RootRoute, REDIRECT_ROUTE, PAGE_NOT_FOUND_ROUTE]
+// 注意：PAGE_NOT_FOUND_ROUTE 不应该放在 basicRoutes 中，
+// 它应该在所有动态路由添加完成后最后添加，否则会导致动态路由无法匹配
+export const basicRoutes = [LoginRoute, RootRoute, REDIRECT_ROUTE]

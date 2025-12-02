@@ -105,14 +105,8 @@ export function createPermissionGuard(router: Router) {
 
     permissionStore.setDynamicAddedRoute(true)
 
-    if (to.name === PAGE_NOT_FOUND_ROUTE.name) {
-      // 动态添加路由后，此处应当重定向到fullPath，否则会加载404页面内容
-      next({ path: to.fullPath, replace: true, query: to.query })
-    } else {
-      const redirectPath = (from.query.redirect || to.path) as string
-      const redirect = decodeURIComponent(redirectPath)
-      const nextData = to.path === redirect ? { ...to, replace: true } : { path: redirect }
-      next(nextData)
-    }
+    // 动态添加路由后，必须重新导航到目标路由，让 Vue Router 重新进行路由匹配
+    // 否则会导致刷新页面时显示 404
+    next({ ...to, replace: true })
   })
 }
