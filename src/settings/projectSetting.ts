@@ -64,13 +64,13 @@ const setting: ProjectConfig = {
     // theme
     theme: ThemeEnum.LIGHT,
     // Whether to show the full screen button
-    showFullScreen: true,
+    showFullScreen: false,
     // Whether to show the document button
-    showDoc: true,
+    showDoc: false,
     // Whether to show the notification button
-    showNotice: true,
+    showNotice: false,
     // Whether to display the menu search
-    showSearch: true,
+    showSearch: false,
   },
 
   // Menu configuration
@@ -120,15 +120,15 @@ const setting: ProjectConfig = {
   multiTabsSetting: {
     cache: false,
     // Turn on
-    show: true,
+    show: false,
     // Is it possible to drag and drop sorting tabs
-    canDrag: true,
+    canDrag: false,
     // Turn on quick actions
-    showQuick: true,
+    showQuick: false,
     // Whether to show the refresh button
-    showRedo: true,
+    showRedo: false,
     // Whether to show the collapse button
-    showFold: true,
+    showFold: false,
   },
 
   // Transition Setting
