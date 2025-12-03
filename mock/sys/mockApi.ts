@@ -150,7 +150,7 @@ export default [
 
   // 登录
   {
-    url: '/basic-api/login',
+    url: '/basic-api/login1',
     method: 'post',
     response: ({ body }: requestParams) => {
       const { username, password } = body
