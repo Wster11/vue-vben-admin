@@ -1,24 +1,5 @@
 <template>
   <div class="p-4 h-full flex flex-col relative space-y-4">
-    <!-- Toast -->
-    <div
-      v-if="toast.show"
-      :class="[
-        'fixed top-6 left-1/2 -translate-x-1/2 z-[70] px-6 py-3 rounded-lg shadow-xl font-medium animate-in fade-in slide-in-from-top-4 duration-300 flex items-center gap-2',
-        toast.type === 'success'
-          ? 'bg-emerald-600 text-white'
-          : toast.type === 'error'
-          ? 'bg-red-600 text-white'
-          : 'bg-slate-800 text-white',
-      ]"
-    >
-      <div
-        v-if="toast.type === 'success'"
-        class="w-2 h-2 rounded-full bg-white animate-pulse"
-      ></div>
-      {{ toast.msg }}
-    </div>
-
     <!-- Top Bar -->
     <div class="flex justify-between items-center">
       <div>
@@ -26,123 +7,88 @@
         <p class="text-slate-500 text-sm">定义设备类型及关联属性规范</p>
       </div>
       <div class="flex gap-2">
-        <button
-          @click="openCreateModal"
-          class="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium"
-        >
-          <Icon icon="ant-design:plus-outlined" class="w-4 h-4" />
+        <a-button type="primary" @click="openCreateModal" class="flex items-center gap-2">
+          <template #icon>
+            <Icon icon="ant-design:plus-outlined" />
+          </template>
           新建分类
-        </button>
+        </a-button>
       </div>
     </div>
 
     <!-- Search Bar -->
-    <div class="flex gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+    <div class="flex gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm items-center">
       <div class="relative flex-1 max-w-md">
-        <Icon
-          icon="ant-design:search-outlined"
-          class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"
-        />
-        <input
-          v-model="searchTerm"
-          type="text"
+        <a-input
+          v-model:value="searchTerm"
           placeholder="搜索分类名称..."
-          class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-        />
+          class="w-full"
+          allow-clear
+        >
+          <template #prefix>
+            <Icon icon="ant-design:search-outlined" class="text-slate-400" />
+          </template>
+        </a-input>
       </div>
-      <button
-        @click="refreshData"
-        class="px-4 py-2 border border-slate-200 rounded-lg flex items-center gap-2 text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-      >
-        <Icon icon="ant-design:search-outlined" class="w-4 h-4" />
+      <a-button @click="refreshData" class="flex items-center gap-2">
+        <template #icon>
+          <Icon icon="ant-design:search-outlined" />
+        </template>
         查询
-      </button>
-      <button
-        @click="searchTerm = ''"
-        class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-      >
-        重置
-      </button>
+      </a-button>
+      <a-button @click="searchTerm = ''"> 重置 </a-button>
     </div>
 
     <!-- Table -->
     <div
       class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex-1 flex flex-col"
     >
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm whitespace-nowrap">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th class="px-6 py-4 font-semibold text-slate-700 w-1/4">分类名称</th>
-              <th class="px-6 py-4 font-semibold text-slate-700 w-1/3">分类描述</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">创建时间</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">创建人</th>
-              <th class="px-6 py-4 font-semibold text-slate-700 text-right">操作</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr v-if="loading">
-              <td colspan="5" class="text-center py-12 text-slate-400">加载中...</td>
-            </tr>
-            <tr v-else-if="filteredCategories.length === 0">
-              <td colspan="5" class="text-center py-12 text-slate-400">暂无数据</td>
-            </tr>
-            <tr
-              v-for="cat in filteredCategories"
-              v-else
-              :key="cat.id"
-              class="hover:bg-slate-50 transition-colors"
-            >
-              <td class="px-6 py-4 font-medium text-slate-900">{{ cat.name }}</td>
-              <td
-                class="px-6 py-4 text-slate-500 overflow-hidden text-ellipsis max-w-xs"
-                :title="cat.description"
-              >
-                {{ cat.description || '-' }}
-              </td>
-              <td class="px-6 py-4 text-slate-500 font-mono text-xs">{{ cat.createdAt }}</td>
-              <td class="px-6 py-4 text-slate-500">
-                <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs">{{
-                  cat.creator
-                }}</span>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <button
-                    @click="openEditModal(cat)"
-                    class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-50 hover:text-indigo-600 transition-colors"
-                  >
-                    <Icon icon="ant-design:edit-outlined" class="w-3.5 h-3.5" />
-                    修改
-                  </button>
-                  <button
-                    @click="openEditModal(cat)"
-                    class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-md hover:bg-indigo-100 transition-colors"
-                  >
-                    <Icon icon="ant-design:setting-outlined" class="w-3.5 h-3.5" />
-                    参数定义
-                  </button>
-                  <button
-                    @click="requestDelete(cat.id, cat.name)"
-                    class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-md hover:bg-red-100 transition-colors"
-                  >
-                    <Icon icon="ant-design:delete-outlined" class="w-3.5 h-3.5" />
-                    删除
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <a-table
+        :columns="columns"
+        :data-source="filteredCategories"
+        :loading="loading"
+        :pagination="false"
+        row-key="id"
+        class="category-table"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'name'">
+            <span class="font-medium text-slate-900">{{ record.name }}</span>
+          </template>
+          <template v-if="column.key === 'description'">
+            <span :title="record.description" class="text-slate-500">
+              {{ record.description || '-' }}
+            </span>
+          </template>
+          <template v-if="column.key === 'createdAt'">
+            <span class="text-slate-500 font-mono text-xs">{{ record.createdAt }}</span>
+          </template>
+          <template v-if="column.key === 'creator'">
+            <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs">
+              {{ record.creator }}
+            </span>
+          </template>
+          <template v-if="column.key === 'action'">
+            <a-space :size="8">
+              <a-button size="small" @click="openEditModal(record)">
+                <template #icon>
+                  <Icon icon="ant-design:edit-outlined" />
+                </template>
+                修改
+              </a-button>
+            </a-space>
+          </template>
+        </template>
+      </a-table>
     </div>
-
     <!-- Modal (Create/Edit) -->
-    <NexusModal
+    <Modal
       v-model:visible="isModalOpen"
       :title="isNew ? '新建设备分类' : '编辑设备分类'"
-      width="1200px"
-      @close="handleDirectClose"
+      width="1000px"
+      :footer="null"
+      wrapClassName="device-category-modal"
+      @cancel="handleDirectClose"
     >
       <div class="flex flex-col h-[80vh] divide-y divide-slate-200">
         <!-- Section 1: Basic Info -->
@@ -157,39 +103,40 @@
                 <label class="block text-sm font-semibold text-slate-700 mb-2"
                   >分类名称 <span class="text-red-500">*</span></label
                 >
-                <input
-                  v-model="formCategory.name"
-                  type="text"
-                  class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                <a-input
+                  v-model:value="formCategory.name"
                   placeholder="请输入分类名称"
+                  class="w-full"
                 />
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-slate-500 mb-2">创建人</label>
-                  <input
+                  <a-input
                     :value="formCategory.creator || ''"
                     disabled
-                    class="w-full px-4 py-2.5 bg-slate-100 border rounded-lg text-slate-500"
+                    class="w-full bg-slate-100 text-slate-500"
                   />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-slate-500 mb-2">创建时间</label>
-                  <input
+                  <a-input
                     :value="formCategory.createdAt || ''"
                     disabled
-                    class="w-full px-4 py-2.5 bg-slate-100 border rounded-lg text-slate-500"
+                    class="w-full bg-slate-100 text-slate-500"
                   />
                 </div>
               </div>
             </div>
             <div class="md:col-span-7 h-full flex flex-col">
               <label class="block text-sm font-medium text-slate-700 mb-2">分类描述</label>
-              <textarea
-                v-model="formCategory.description"
-                class="flex-1 w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none min-h-[120px]"
+              <a-textarea
+                v-model:value="formCategory.description"
+                class="flex-1 w-full"
                 placeholder="请输入该分类的详细描述..."
-              ></textarea>
+                :rows="4"
+                style="resize: none; min-height: 120px"
+              />
             </div>
           </div>
         </div>
@@ -201,13 +148,16 @@
               <span class="w-1 h-5 rounded-full bg-emerald-500"></span>
               参数定义
             </h3>
-            <button
+            <a-button
+              type="primary"
               @click="addAttributeRow"
-              class="flex items-center gap-1.5 text-sm font-medium text-white bg-emerald-600 px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-sm"
+              class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700"
             >
-              <Icon icon="ant-design:plus-circle-outlined" class="w-4 h-4" />
+              <template #icon>
+                <Icon icon="ant-design:plus-circle-outlined" />
+              </template>
               新增
-            </button>
+            </a-button>
           </div>
 
           <div
@@ -246,61 +196,40 @@
                   >
                 </div>
                 <div class="col-span-5 relative">
-                  <input
+                  <a-auto-complete
                     :value="attr.name"
-                    @input="updateAttribute(idx, 'name', ($event.target as HTMLInputElement).value)"
-                    @focus="activeParamDropdownIndex = idx"
-                    @blur="() => setTimeout(() => (activeParamDropdownIndex = null), 200)"
+                    :options="getParamOptions(attr.name || '')"
+                    @update:value="(val) => updateAttribute(idx, 'name', val)"
                     placeholder="输入参数名称"
-                    class="w-full px-3 py-2 text-sm border border-slate-200 rounded-md focus:ring-2 focus:ring-emerald-500 outline-none"
+                    class="w-full"
                   />
-                  <ul
-                    v-if="activeParamDropdownIndex === idx"
-                    class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-40 overflow-y-auto"
-                  >
-                    <li
-                      v-for="(s, sIdx) in filteredParamNames(attr.name || '')"
-                      :key="sIdx"
-                      @click="updateAttribute(idx, 'name', s)"
-                      class="px-3 py-2 text-sm hover:bg-emerald-50 cursor-pointer"
-                    >
-                      {{ s }}
-                    </li>
-                  </ul>
                 </div>
                 <div class="col-span-3">
-                  <input
+                  <a-input
                     :value="attr.unit || ''"
-                    @input="updateAttribute(idx, 'unit', ($event.target as HTMLInputElement).value)"
+                    @change="(e) => updateAttribute(idx, 'unit', e.target.value)"
                     placeholder="单位"
-                    class="w-full px-3 py-2 text-sm border border-slate-200 rounded-md focus:ring-2 focus:ring-emerald-500 outline-none"
+                    class="w-full"
                   />
                 </div>
                 <div class="col-span-2">
-                  <label class="inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
+                  <label class="inline-flex items-center cursor-pointer gap-2">
+                    <a-switch
                       :checked="attr.visible"
-                      @change="
-                        updateAttribute(idx, 'visible', ($event.target as HTMLInputElement).checked)
-                      "
-                      class="sr-only peer"
+                      @change="(checked) => updateAttribute(idx, 'visible', checked)"
+                      size="small"
                     />
-                    <div
-                      class="relative w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"
-                    ></div>
-                    <span class="ms-2 text-xs font-medium text-slate-600 select-none">{{
+                    <span class="text-xs font-medium text-slate-600 select-none">{{
                       attr.visible ? '显示' : '隐藏'
                     }}</span>
                   </label>
                 </div>
                 <div class="col-span-1 flex justify-center">
-                  <button
-                    @click="removeAttribute(idx)"
-                    class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                  >
-                    <Icon icon="ant-design:delete-outlined" class="w-4 h-4" />
-                  </button>
+                  <a-button type="text" danger size="small" @click="removeAttribute(idx)">
+                    <template #icon>
+                      <Icon icon="ant-design:delete-outlined" />
+                    </template>
+                  </a-button>
                 </div>
               </div>
             </div>
@@ -309,28 +238,29 @@
 
         <!-- Footer Buttons -->
         <div class="flex justify-end gap-4 pt-6 mt-auto border-t border-slate-100 flex-shrink-0">
-          <button
-            @click="handleCancelClick"
-            class="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors"
-          >
-            <Icon icon="ant-design:close-outlined" class="w-4 h-4" /> 取消
-          </button>
-          <button
-            @click="handleSaveCheck"
-            class="flex items-center gap-2 px-8 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-md"
-          >
-            <Icon icon="ant-design:save-outlined" class="w-4 h-4" /> 提交保存
-          </button>
+          <a-button size="large" @click="handleCancelClick">
+            <template #icon>
+              <Icon icon="ant-design:close-outlined" />
+            </template>
+            取消
+          </a-button>
+          <a-button type="primary" size="large" @click="handleSaveCheck">
+            <template #icon>
+              <Icon icon="ant-design:save-outlined" />
+            </template>
+            提交保存
+          </a-button>
         </div>
       </div>
-    </NexusModal>
+    </Modal>
 
     <!-- Confirm Close Modal -->
-    <NexusModal
+    <Modal
       v-model:visible="isConfirmCloseOpen"
       title="确认取消"
       width="400px"
-      @close="isConfirmCloseOpen = false"
+      :footer="null"
+      @cancel="isConfirmCloseOpen = false"
     >
       <div class="flex flex-col items-center text-center pt-2 pb-2">
         <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
@@ -339,28 +269,23 @@
         <h3 class="text-lg font-bold text-slate-800 mb-2">确定取消吗？</h3>
         <p class="text-sm text-slate-500 mb-6">当前编辑的内容将不会被保存。</p>
         <div class="flex gap-3 w-full">
-          <button
-            @click="isConfirmCloseOpen = false"
-            class="flex-1 py-2.5 border rounded-lg hover:bg-slate-50"
-          >
+          <a-button @click="isConfirmCloseOpen = false" class="flex-1" size="large">
             暂不取消
-          </button>
-          <button
-            @click="executeCancel"
-            class="flex-1 py-2.5 bg-indigo-600 rounded-lg text-white hover:bg-indigo-700"
-          >
+          </a-button>
+          <a-button type="primary" @click="executeCancel" class="flex-1" size="large">
             确定取消
-          </button>
+          </a-button>
         </div>
       </div>
-    </NexusModal>
+    </Modal>
 
     <!-- Confirm Save Modal -->
-    <NexusModal
+    <Modal
       v-model:visible="isConfirmSaveOpen"
       title="确认提交"
       width="400px"
-      @close="isConfirmSaveOpen = false"
+      :footer="null"
+      @cancel="isConfirmSaveOpen = false"
     >
       <div class="flex flex-col items-center text-center pt-2 pb-2">
         <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
@@ -368,61 +293,32 @@
         </div>
         <h3 class="text-lg font-bold text-slate-800 mb-2">确认提交保存？</h3>
         <div class="flex gap-3 w-full mt-6">
-          <button
-            @click="isConfirmSaveOpen = false"
-            class="flex-1 py-2.5 border rounded-lg hover:bg-slate-50"
-          >
+          <a-button @click="isConfirmSaveOpen = false" class="flex-1" size="large">
             再检查下
-          </button>
-          <button
-            @click="executeSave"
-            class="flex-1 py-2.5 bg-indigo-600 rounded-lg text-white hover:bg-indigo-700"
-          >
+          </a-button>
+          <a-button type="primary" @click="executeSave" class="flex-1" size="large">
             确定提交
-          </button>
+          </a-button>
         </div>
       </div>
-    </NexusModal>
-
-    <!-- Confirm Delete Modal -->
-    <NexusModal
-      v-model:visible="isConfirmDeleteOpen"
-      title="确认删除"
-      width="400px"
-      @close="isConfirmDeleteOpen = false"
-    >
-      <div class="flex flex-col items-center text-center pt-2 pb-2">
-        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-          <Icon icon="ant-design:warning-outlined" class="w-6 h-6 text-red-600" />
-        </div>
-        <h3 class="text-lg font-bold text-slate-800 mb-2">确定删除分类?</h3>
-        <p class="text-sm text-slate-500 mb-6">
-          您正在删除 <strong>{{ deleteTarget?.name }}</strong
-          >，该操作无法撤销。
-        </p>
-        <div class="flex gap-3 w-full">
-          <button
-            @click="isConfirmDeleteOpen = false"
-            class="flex-1 py-2.5 border rounded-lg hover:bg-slate-50"
-          >
-            取消
-          </button>
-          <button
-            @click="executeDelete"
-            class="flex-1 py-2.5 bg-red-600 rounded-lg text-white hover:bg-red-700"
-          >
-            确定删除
-          </button>
-        </div>
-      </div>
-    </NexusModal>
+    </Modal>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { ref, reactive, computed } from 'vue'
+  import { ref, computed } from 'vue'
+  import {
+    Table as ATable,
+    Button as AButton,
+    Space as ASpace,
+    Input as AInput,
+    Textarea as ATextarea,
+    Switch as ASwitch,
+    AutoComplete as AAutoComplete,
+    Modal,
+    message,
+  } from 'ant-design-vue'
   import { Icon } from '/@/components/Icon'
-  import NexusModal from '../components/NexusModal.vue'
   import type { Category, CategoryAttribute } from '../types'
 
   // Mock 数据
@@ -504,8 +400,6 @@
   const isModalOpen = ref(false)
   const isConfirmCloseOpen = ref(false)
   const isConfirmSaveOpen = ref(false)
-  const isConfirmDeleteOpen = ref(false)
-  const deleteTarget = ref<{ id: string; name: string } | null>(null)
 
   const isNew = ref(false)
   const formCategory = ref<Partial<Category>>({})
@@ -513,56 +407,55 @@
 
   // 自动补全状态
   const historyParamNames = ref<string[]>([...mockHistoryParamNames])
-  const activeParamDropdownIndex = ref<number | null>(null)
 
-  // 提示框状态
-  const toast = reactive({
-    show: false,
-    msg: '',
-    type: 'info' as 'success' | 'error' | 'info',
-  })
+  // Table columns
+  const columns = [
+    {
+      title: '分类名称',
+      dataIndex: 'name',
+      key: 'name',
+      width: '25%',
+    },
+    {
+      title: '分类描述',
+      dataIndex: 'description',
+      key: 'description',
+      width: '33%',
+      ellipsis: true,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+    },
+    {
+      title: '创建人',
+      dataIndex: 'creator',
+      key: 'creator',
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 200,
+      align: 'right' as const,
+    },
+  ]
 
   // 筛选逻辑
   const filteredCategories = computed(() =>
     categories.value.filter((c) => c.name.toLowerCase().includes(searchTerm.value.toLowerCase())),
   )
 
-  const filteredParamNames = (input: string) => {
-    return historyParamNames.value.filter((n) =>
-      n.toLowerCase().includes((input || '').toLowerCase()),
-    )
-  }
-
-  const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'info') => {
-    toast.show = true
-    toast.msg = msg
-    toast.type = type
-    setTimeout(() => {
-      toast.show = false
-    }, 3000)
+  const getParamOptions = (input: string) => {
+    return historyParamNames.value
+      .filter((n) => n.toLowerCase().includes((input || '').toLowerCase()))
+      .map((n) => ({ value: n }))
   }
 
   const refreshData = () => {
     // Mock refresh - 实际项目中会从API重新加载数据
-    showToast('数据已刷新', 'info')
+    message.info('数据已刷新')
   }
-
-  // 事件处理函数
-  const requestDelete = (id: string, name: string) => {
-    deleteTarget.value = { id, name }
-    isConfirmDeleteOpen.value = true
-  }
-
-  const executeDelete = () => {
-    if (deleteTarget.value) {
-      categories.value = categories.value.filter((c) => c.id !== deleteTarget.value!.id)
-      mockCategoryAttributes.delete(deleteTarget.value.id)
-      deleteTarget.value = null
-      isConfirmDeleteOpen.value = false
-      showToast('删除成功', 'success')
-    }
-  }
-
   const openCreateModal = () => {
     const today = new Date().toISOString().split('T')[0]
 
@@ -598,7 +491,7 @@
   const executeCancel = () => {
     isConfirmCloseOpen.value = false
     isModalOpen.value = false
-    showToast('取消成功', 'info')
+    message.info('取消成功')
   }
 
   // 属性设计逻辑
@@ -628,13 +521,13 @@
   // 保存逻辑
   const handleSaveCheck = () => {
     if (!formCategory.value.name || formCategory.value.name.trim() === '') {
-      showToast('请填写分类名称 (必填)', 'error')
+      message.error('请填写分类名称 (必填)')
       return
     }
     const names = formAttributes.value.map((a) => a.name.trim()).filter((n) => n !== '')
     const uniqueNames = new Set(names)
     if (names.length !== uniqueNames.size) {
-      showToast('参数名称不能重复，请检查', 'error')
+      message.error('参数名称不能重复，请检查')
       return
     }
     isConfirmSaveOpen.value = true
@@ -676,14 +569,20 @@
 
     isConfirmSaveOpen.value = false
     isModalOpen.value = false
-    showToast('保存成功', 'success')
+    message.success('保存成功')
   }
 </script>
 
-<style scoped>
-  .animate-in {
-    animation: slideIn 0.3s ease-out;
+<style lang="less">
+  .device-category-modal {
+    .ant-modal-body {
+      padding: 30px !important;
+    }
   }
+</style>
+
+<style scoped>
+
 
   @keyframes slideIn {
     from {
@@ -697,10 +596,6 @@
     }
   }
 
-  .fade-in {
-    animation: fadeIn 0.3s ease-out;
-  }
-
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -711,10 +606,6 @@
     }
   }
 
-  .slide-in-from-top-4 {
-    animation: slideInFromTop 0.3s ease-out;
-  }
-
   @keyframes slideInFromTop {
     from {
       transform: translateX(-50%) translateY(-16px);
@@ -723,6 +614,43 @@
     to {
       transform: translateX(-50%) translateY(0);
     }
+  }  /* Category Table Styles */
+  .category-table :deep(.ant-table) {
+    font-size: 14px;
+  }
+
+  .category-table :deep(.ant-table-thead > tr > th) {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 600;
+    color: #334155;
+    padding: 16px 24px;
+  }
+
+  .category-table :deep(.ant-table-tbody > tr > td) {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .category-table :deep(.ant-table-tbody > tr:hover > td) {
+    background: #f8fafc;
+  }
+
+  .category-table :deep(.ant-empty) {
+    padding: 48px 0;
+  }
+
+  /* Toast Animations */
+  .animate-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .slide-in-from-top-4 {
+    animation: slideInFromTop 0.3s ease-out;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
