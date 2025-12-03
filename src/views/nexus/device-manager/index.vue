@@ -914,6 +914,25 @@
     { title: '上传时间', key: 'uploadDate', dataIndex: 'uploadDate' },
   ]
 
+  // Helper functions (must be declared before computed properties that use them)
+  const isDeviceLinked = (deviceId: string) => {
+    const fileIds = mockDeviceFileBindings.value.get(deviceId) || []
+    return fileIds.length > 0
+  }
+
+  const getCategoryDisplay = (catId: string) => {
+    const cat = categories.value.find((c) => c.id === catId)
+    return cat ? cat.name : '-'
+  }
+
+  const getLanguageLabel = (code: string) => {
+    return LANGUAGE_OPTIONS.find((opt) => opt.code === code)?.label || code || '-'
+  }
+
+  const getManualTypeLabel = (code: string) => {
+    return MANUAL_TYPE_MAP[code] || code || '其他文档'
+  }
+
   // 筛选逻辑
   const filteredDevices = computed(() => {
     const result = devices.value.filter((d) => {
@@ -1015,24 +1034,6 @@
   const handleTableChange = (pag: any) => {
     pagination.current = pag.current
     pagination.pageSize = pag.pageSize
-  }
-
-  const isDeviceLinked = (deviceId: string) => {
-    const fileIds = mockDeviceFileBindings.value.get(deviceId) || []
-    return fileIds.length > 0
-  }
-
-  const getCategoryDisplay = (catId: string) => {
-    const cat = categories.value.find((c) => c.id === catId)
-    return cat ? cat.name : '-'
-  }
-
-  const getLanguageLabel = (code: string) => {
-    return LANGUAGE_OPTIONS.find((opt) => opt.code === code)?.label || code || '-'
-  }
-
-  const getManualTypeLabel = (code: string) => {
-    return MANUAL_TYPE_MAP[code] || code || '其他文档'
   }
 
   // 视图切换
@@ -1194,7 +1195,7 @@
 
   const handleBindSelectAll = (
     selected: boolean,
-    selectedRows: DocFile[],
+    _selectedRows: DocFile[],
     changeRows: DocFile[],
   ) => {
     if (selected) {
