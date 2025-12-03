@@ -117,12 +117,11 @@
               size="default"
               allow-clear
               style="width: 100%"
-            >
-              <a-select-option value="">全部分类</a-select-option>
-              <a-select-option v-for="c in categories" :key="c.id" :value="c.id">
-                {{ c.name }}
-              </a-select-option>
-            </a-select>
+              :options="[
+                { value: '', label: '全部分类' },
+                ...categories.map((c) => ({ value: c.id, label: c.name })),
+              ]"
+            />
           </div>
 
           <div>
@@ -133,12 +132,11 @@
               size="default"
               allow-clear
               style="width: 100%"
-            >
-              <a-select-option value="">全部语言</a-select-option>
-              <a-select-option v-for="l in LANGUAGE_OPTIONS" :key="l.code" :value="l.code">
-                {{ l.label }}
-              </a-select-option>
-            </a-select>
+              :options="[
+                { value: '', label: '全部语言' },
+                ...LANGUAGE_OPTIONS.map((l) => ({ value: l.code, label: l.label })),
+              ]"
+            />
           </div>
 
           <div>
@@ -148,11 +146,12 @@
               placeholder="全部"
               size="default"
               style="width: 100%"
-            >
-              <a-select-option value="all">全部</a-select-option>
-              <a-select-option value="yes">是</a-select-option>
-              <a-select-option value="no">否</a-select-option>
-            </a-select>
+              :options="[
+                { value: 'all', label: '全部' },
+                { value: 'yes', label: '是' },
+                { value: 'no', label: '否' },
+              ]"
+            />
           </div>
 
           <div class="flex gap-2">
@@ -406,12 +405,11 @@
             placeholder="全部"
             allow-clear
             style="width: 100%"
-          >
-            <a-select-option value="">全部</a-select-option>
-            <a-select-option v-for="c in categories" :key="c.id" :value="c.name">
-              {{ c.name }}
-            </a-select-option>
-          </a-select>
+            :options="[
+              { value: '', label: '全部' },
+              ...categories.map((c) => ({ value: c.name, label: c.name })),
+            ]"
+          />
         </div>
         <div class="w-40">
           <label class="block text-xs font-medium text-slate-500 mb-1">设备型号</label>
@@ -493,12 +491,11 @@
                   placeholder="-- 选择语言 --"
                   size="large"
                   style="width: 100%"
-                >
-                  <a-select-option value="">-- 选择语言 --</a-select-option>
-                  <a-select-option v-for="l in LANGUAGE_OPTIONS" :key="l.code" :value="l.code">
-                    {{ l.label }}
-                  </a-select-option>
-                </a-select>
+                  :options="[
+                    { value: '', label: '-- 选择语言 --' },
+                    ...LANGUAGE_OPTIONS.map((l) => ({ value: l.code, label: l.label })),
+                  ]"
+                />
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">语言简码</label>
@@ -515,11 +512,14 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">文件类型</label>
-                <a-select v-model:value="uploadForm.manualType" size="large" style="width: 100%">
-                  <a-select-option v-for="(v, k) in MANUAL_TYPE_MAP" :key="k" :value="k">
-                    {{ v }}
-                  </a-select-option>
-                </a-select>
+                <a-select
+                  v-model:value="uploadForm.manualType"
+                  size="large"
+                  style="width: 100%"
+                  :options="
+                    Object.entries(MANUAL_TYPE_MAP).map(([k, v]) => ({ value: k, label: v }))
+                  "
+                />
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">版本号</label>
@@ -539,12 +539,14 @@
                 placeholder="-- 请先选择分类 --"
                 size="large"
                 style="width: 100%"
-              >
-                <a-select-option value="">-- 请先选择分类 --</a-select-option>
-                <a-select-option v-for="c in categories" :key="c.id" :value="c.id">
-                  {{ c.name }} ({{ c.description }})
-                </a-select-option>
-              </a-select>
+                :options="[
+                  { value: '', label: '-- 请先选择分类 --' },
+                  ...categories.map((c) => ({
+                    value: c.id,
+                    label: `${c.name} (${c.description})`,
+                  })),
+                ]"
+              />
             </div>
 
             <!-- Step 2: Model (Filtered by Category) -->
@@ -556,12 +558,11 @@
                 placeholder="-- 请选择型号 --"
                 size="large"
                 style="width: 100%"
-              >
-                <a-select-option value="">-- 请选择型号 --</a-select-option>
-                <a-select-option v-for="m in availableModels" :key="m" :value="m">
-                  {{ m }}
-                </a-select-option>
-              </a-select>
+                :options="[
+                  { value: '', label: '-- 请选择型号 --' },
+                  ...availableModels.map((m) => ({ value: m, label: m })),
+                ]"
+              />
             </div>
 
             <!-- Step 3: Device (Filtered by Category & Model) -->
@@ -573,12 +574,11 @@
                 placeholder="-- 选择具体设备 --"
                 size="large"
                 style="width: 100%"
-              >
-                <a-select-option value="">-- 选择具体设备 --</a-select-option>
-                <a-select-option v-for="d in availableDevices" :key="d.id" :value="d.id">
-                  {{ d.name }} ({{ d.sn }})
-                </a-select-option>
-              </a-select>
+                :options="[
+                  { value: '', label: '-- 选择具体设备 --' },
+                  ...availableDevices.map((d) => ({ value: d.id, label: `${d.name} (${d.sn})` })),
+                ]"
+              />
             </div>
 
             <div class="grid grid-cols-2 gap-4">
