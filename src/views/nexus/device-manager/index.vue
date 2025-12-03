@@ -1,13 +1,5 @@
 <template>
   <div class="p-4 h-full flex flex-col space-y-4 relative">
-    <!-- Toast 提示 -->
-    <Transition name="fade">
-      <div v-if="toast.show" :class="toastClass">
-        <Icon :icon="toastIconName" class="w-5 h-5" />
-        {{ toast.msg }}
-      </div>
-    </Transition>
-
     <!-- 列表视图 -->
     <template v-if="viewMode === 'LIST'">
       <!-- 页面顶部 -->
@@ -17,91 +9,59 @@
           <p class="text-slate-500 text-sm">监控设备状态并管理文档关联</p>
         </div>
         <div class="flex gap-2">
-          <button
-            @click="openCreateModal"
-            class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium"
-          >
-            <Icon icon="ant-design:plus-outlined" class="w-4 h-4" />
+          <a-button type="primary" @click="openCreateModal" class="flex items-center gap-2">
+            <template #icon>
+              <Icon icon="ant-design:plus-outlined" />
+            </template>
             新建设备
-          </button>
+          </a-button>
         </div>
       </div>
 
       <!-- 高级查询区域 -->
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex flex-wrap items-end gap-3">
-          <div class="w-32 xl:w-40">
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="w-40">
             <label class="block text-xs font-medium text-slate-500 mb-1">设备分类</label>
-            <input
-              v-model="filterCategory"
-              type="text"
-              placeholder="分类名称"
-              class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+            <a-input v-model:value="filterCategory" placeholder="分类名称" allow-clear />
           </div>
-          <div class="w-32 xl:w-40">
+          <div class="w-40">
             <label class="block text-xs font-medium text-slate-500 mb-1">设备名称</label>
-            <input
-              v-model="filterName"
-              type="text"
-              placeholder="设备名称"
-              class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+            <a-input v-model:value="filterName" placeholder="设备名称" allow-clear />
           </div>
-          <div class="w-32 xl:w-40">
+          <div class="w-40">
             <label class="block text-xs font-medium text-slate-500 mb-1">设备型号</label>
-            <input
-              v-model="filterModel"
-              type="text"
-              placeholder="型号"
-              class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            <a-input v-model:value="filterModel" placeholder="型号" allow-clear />
+          </div>
+          <div class="w-32">
+            <label class="block text-xs font-medium text-slate-500 mb-1">关联文档</label>
+            <a-select v-model:value="filterLinked" class="w-full">
+              <a-select-option value="all">全部</a-select-option>
+              <a-select-option value="yes">是</a-select-option>
+              <a-select-option value="no">否</a-select-option>
+            </a-select>
+          </div>
+          <div class="w-40">
+            <label class="block text-xs font-medium text-slate-500 mb-1">开始日期</label>
+            <a-date-picker
+              v-model:value="filterDateStart"
+              value-format="YYYY-MM-DD"
+              class="w-full"
             />
           </div>
-          <div class="w-24">
-            <label class="block text-xs font-medium text-slate-500 mb-1">关联文档</label>
-            <select
-              v-model="filterLinked"
-              class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="all">全部</option>
-              <option value="yes">是</option>
-              <option value="no">否</option>
-            </select>
-          </div>
-          <div class="w-36">
-            <label class="block text-xs font-medium text-slate-500 mb-1">开始日期</label>
-            <div class="relative">
-              <input
-                v-model="filterDateStart"
-                type="date"
-                class="w-full pl-2 pr-2 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-          </div>
-          <div class="w-36">
+          <div class="w-40">
             <label class="block text-xs font-medium text-slate-500 mb-1">结束日期</label>
-            <div class="relative">
-              <input
-                v-model="filterDateEnd"
-                type="date"
-                class="w-full pl-2 pr-2 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+            <a-date-picker v-model:value="filterDateEnd" value-format="YYYY-MM-DD" class="w-full" />
           </div>
 
-          <div class="flex gap-2 ml-auto lg:ml-0">
-            <button
-              @click="resetFilters"
-              class="px-4 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors h-[38px]"
-            >
-              重置
-            </button>
-            <button
-              class="px-4 py-2 text-sm bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-2 h-[38px]"
-            >
-              <Icon icon="ant-design:search-outlined" class="w-4 h-4" />
+          <div class="flex gap-2 ml-auto mt-auto">
+            <a-button @click="resetFilters">重置</a-button>
+            <a-button type="primary" ghost @click="handleSearch">
+              <template #icon>
+                <Icon icon="ant-design:search-outlined" />
+              </template>
               查询
-            </button>
+            </a-button>
           </div>
         </div>
       </div>
@@ -110,106 +70,83 @@
       <div
         class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col"
       >
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm whitespace-nowrap">
-            <thead class="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th class="px-6 py-4 font-semibold text-slate-700">设备名称</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">设备分类</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">设备型号</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">序列号</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">关联文档</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">创建时间</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">创建人</th>
-                <th class="px-6 py-4 font-semibold text-slate-700 text-right">操作</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="device in filteredDevices"
-                :key="device.id"
-                class="hover:bg-slate-50 transition-colors"
+        <a-table
+          :columns="columns"
+          :data-source="filteredDevices"
+          :pagination="pagination"
+          @change="handleTableChange"
+          row-key="id"
+          class="h-full"
+          :scroll="{ y: 'calc(100vh - 380px)' }"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'name'">
+              <a
+                @click="goToDeviceDetail(record)"
+                class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 group"
               >
-                <td class="px-6 py-4 font-medium">
-                  <button
-                    @click="goToDeviceDetail(device)"
-                    class="text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 group"
-                    title="查看详情"
+                {{ record.name }}
+                <Icon
+                  icon="ant-design:arrow-right-outlined"
+                  class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+              </a>
+            </template>
+            <template v-if="column.key === 'category'">
+              <a-tag color="blue">{{ getCategoryDisplay(record.categoryId) }}</a-tag>
+            </template>
+            <template v-if="column.key === 'sn'">
+              <span class="font-mono text-xs">{{ record.sn }}</span>
+            </template>
+            <template v-if="column.key === 'linked'">
+              <a-tag :color="isDeviceLinked(record.id) ? 'success' : 'error'">
+                {{ isDeviceLinked(record.id) ? '是' : '否' }}
+              </a-tag>
+            </template>
+            <template v-if="column.key === 'action'">
+              <a-space size="small">
+                <a-tooltip title="下载二维码">
+                  <a-button
+                    type="text"
+                    size="small"
+                    class="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                    @click="handleDownloadQr(record)"
                   >
-                    {{ device.name }}
-                    <Icon
-                      icon="ant-design:arrow-left-outlined"
-                      class="w-3 h-3 rotate-180 opacity-0 group-hover:opacity-100 transition-opacity"
-                    />
-                  </button>
-                </td>
-                <td class="px-6 py-4 text-slate-500">
-                  <span class="bg-slate-100 px-2 py-1 rounded text-xs">{{
-                    getCategoryDisplay(device.categoryId)
-                  }}</span>
-                </td>
-                <td class="px-6 py-4 text-slate-500">{{ device.model }}</td>
-                <td class="px-6 py-4 text-slate-500 font-mono text-xs">{{ device.sn }}</td>
-                <td class="px-6 py-4">
-                  <span
-                    :class="[
-                      'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
-                      isDeviceLinked(device.id)
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-red-50 text-red-700',
-                    ]"
+                    <template #icon>
+                      <Icon icon="ant-design:qrcode-outlined" />
+                    </template>
+                  </a-button>
+                </a-tooltip>
+                <a-tooltip title="修改">
+                  <a-button type="text" size="small" @click="openEditModal(record)">
+                    <template #icon>
+                      <Icon icon="ant-design:edit-outlined" />
+                    </template>
+                  </a-button>
+                </a-tooltip>
+                <a-tooltip title="关联文档">
+                  <a-button
+                    type="text"
+                    size="small"
+                    class="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    @click="openBindModal(record)"
                   >
-                    <div
-                      :class="[
-                        'w-1.5 h-1.5 rounded-full',
-                        isDeviceLinked(device.id) ? 'bg-emerald-500' : 'bg-red-500',
-                      ]"
-                    ></div>
-                    {{ isDeviceLinked(device.id) ? '是' : '否' }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-slate-500">{{ device.createdAt }}</td>
-                <td class="px-6 py-4 text-slate-500">{{ device.creator }}</td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <button
-                      @click="handleDownloadQr(device)"
-                      class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md hover:bg-emerald-100 transition-colors"
-                      title="下载二维码"
-                    >
-                      <Icon icon="ant-design:qrcode-outlined" class="w-3.5 h-3.5" />
-                      二维码
-                    </button>
-                    <button
-                      @click="openEditModal(device)"
-                      class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-50 hover:text-indigo-600 transition-colors"
-                    >
-                      <Icon icon="ant-design:edit-outlined" class="w-3.5 h-3.5" />
-                      修改
-                    </button>
-                    <button
-                      @click="openBindModal(device)"
-                      class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-md hover:bg-indigo-100 transition-colors"
-                    >
-                      <Icon icon="ant-design:link-outlined" class="w-3.5 h-3.5" />
-                      关联
-                    </button>
-                    <button
-                      @click="handleDelete(device.id)"
-                      class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-md hover:bg-red-100 transition-colors"
-                    >
-                      <Icon icon="ant-design:delete-outlined" class="w-3.5 h-3.5" />
-                      删除
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="filteredDevices.length === 0">
-                <td colspan="8" class="text-center py-12 text-slate-400">未找到相关设备</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                    <template #icon>
+                      <Icon icon="ant-design:link-outlined" />
+                    </template>
+                  </a-button>
+                </a-tooltip>
+                <a-popconfirm title="确定要删除该设备吗?" @confirm="handleDelete(record.id)">
+                  <a-button type="text" danger size="small">
+                    <template #icon>
+                      <Icon icon="ant-design:delete-outlined" />
+                    </template>
+                  </a-button>
+                </a-popconfirm>
+              </a-space>
+            </template>
+          </template>
+        </a-table>
       </div>
     </template>
 
@@ -220,77 +157,52 @@
     >
       <!-- 头部 -->
       <div class="flex items-center gap-4 border-b border-slate-200 pb-4 mb-2">
-        <button
-          @click="backToDeviceList"
-          class="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
-        >
-          <Icon icon="ant-design:arrow-left-outlined" class="w-5 h-5" />
-        </button>
+        <a-button shape="circle" @click="backToDeviceList">
+          <template #icon>
+            <Icon icon="ant-design:arrow-left-outlined" />
+          </template>
+        </a-button>
         <div>
           <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
             {{ selectedDeviceForDetail.name }}
-            <span
-              class="px-2 py-0.5 rounded text-xs font-normal bg-indigo-50 text-indigo-600 border border-indigo-100"
-            >
-              {{ selectedDeviceForDetail.status }}
-            </span>
+            <a-tag color="processing">{{ selectedDeviceForDetail.status }}</a-tag>
           </h1>
           <p class="text-slate-500 text-sm">设备详细信息与文档库</p>
         </div>
       </div>
 
       <!-- 基本信息 -->
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <div class="w-1 h-4 bg-indigo-600 rounded-full"></div>
-          设备基本信息
-        </h3>
-        <div class="flex flex-col lg:flex-row gap-8">
-          <!-- 左侧信息 -->
-          <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-8">
-            <div>
-              <label class="text-xs font-medium text-slate-400 block mb-1">设备分类</label>
-              <div class="text-sm font-medium text-slate-700">
-                {{ getCategoryDisplay(selectedDeviceForDetail.categoryId) }}
-              </div>
-            </div>
-            <div>
-              <label class="text-xs font-medium text-slate-400 block mb-1">设备型号</label>
-              <div class="text-sm font-medium text-slate-700">{{
-                selectedDeviceForDetail.model
-              }}</div>
-            </div>
-            <div>
-              <label class="text-xs font-medium text-slate-400 block mb-1">序列号 (SN)</label>
-              <div class="text-sm font-medium text-slate-700 font-mono">
-                {{ selectedDeviceForDetail.sn }}
-              </div>
-            </div>
-            <div>
-              <label class="text-xs font-medium text-slate-400 block mb-1">版本号</label>
-              <div class="text-sm font-medium text-slate-700">
-                {{ selectedDeviceForDetail.version || '-' }}
-              </div>
-            </div>
-            <div>
-              <label class="text-xs font-medium text-slate-400 block mb-1">创建人</label>
-              <div class="text-sm font-medium text-slate-700">
-                {{ selectedDeviceForDetail.creator }}
-              </div>
-            </div>
-            <div>
-              <label class="text-xs font-medium text-slate-400 block mb-1">创建时间</label>
-              <div class="text-sm font-medium text-slate-700">
-                {{ selectedDeviceForDetail.createdAt }}
-              </div>
-            </div>
-            <div class="md:col-span-2 lg:col-span-3">
-              <label class="text-xs font-medium text-slate-400 block mb-1">二维码描述</label>
-              <div class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">
-                {{ selectedDeviceForDetail.qrDesc || '无描述' }}
-              </div>
-            </div>
+      <a-card :bordered="false" class="shadow-sm rounded-xl">
+        <template #title>
+          <div class="flex items-center gap-2">
+            <div class="w-1 h-4 bg-indigo-600 rounded-full"></div>
+            <span>设备基本信息</span>
           </div>
+        </template>
+        <div class="flex flex-col lg:flex-row gap-8">
+          <a-descriptions :column="{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }" class="flex-1">
+            <a-descriptions-item label="设备分类">
+              {{ getCategoryDisplay(selectedDeviceForDetail.categoryId) }}
+            </a-descriptions-item>
+            <a-descriptions-item label="设备型号">
+              {{ selectedDeviceForDetail.model }}
+            </a-descriptions-item>
+            <a-descriptions-item label="序列号">
+              <span class="font-mono">{{ selectedDeviceForDetail.sn }}</span>
+            </a-descriptions-item>
+            <a-descriptions-item label="版本号">
+              {{ selectedDeviceForDetail.version || '-' }}
+            </a-descriptions-item>
+            <a-descriptions-item label="创建人">
+              {{ selectedDeviceForDetail.creator }}
+            </a-descriptions-item>
+            <a-descriptions-item label="创建时间">
+              {{ selectedDeviceForDetail.createdAt }}
+            </a-descriptions-item>
+            <a-descriptions-item label="二维码描述" :span="3">
+              {{ selectedDeviceForDetail.qrDesc || '无描述' }}
+            </a-descriptions-item>
+          </a-descriptions>
 
           <!-- 右侧二维码卡片 -->
           <div
@@ -313,92 +225,65 @@
             </div>
           </div>
         </div>
-      </div>
+      </a-card>
 
       <!-- 关联文档列表 -->
-      <div
-        class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col min-h-[400px]"
-      >
-        <div
-          class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4"
-        >
-          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-            <div class="w-1 h-4 bg-emerald-500 rounded-full"></div>
-            关联文档列表 ({{ deviceLinkedFiles.length }})
-          </h3>
-
-          <!-- 语言筛选 -->
-          <div class="flex items-center gap-2">
-            <Icon icon="ant-design:global-outlined" class="w-4 h-4 text-slate-400" />
-            <select
-              v-model="detailLanguageFilter"
-              class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-            >
-              <option value="all">所有语言</option>
-              <option v-for="opt in LANGUAGE_OPTIONS" :key="opt.code" :value="opt.code">
-                {{ opt.label }}
-              </option>
-            </select>
+      <a-card :bordered="false" class="shadow-sm rounded-xl flex-1 flex flex-col">
+        <template #title>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <div class="w-1 h-4 bg-emerald-500 rounded-full"></div>
+              <span>关联文档列表 ({{ deviceLinkedFiles.length }})</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <Icon icon="ant-design:global-outlined" class="text-slate-400" />
+              <a-select
+                v-model:value="detailLanguageFilter"
+                size="small"
+                class="w-32"
+                :options="[
+                  { value: 'all', label: '所有语言' },
+                  ...LANGUAGE_OPTIONS.map((l) => ({ value: l.code, label: l.label })),
+                ]"
+              />
+            </div>
           </div>
-        </div>
-
-        <div class="flex-1 overflow-x-auto">
-          <table class="w-full text-left text-sm whitespace-nowrap">
-            <thead class="bg-slate-50 text-slate-500">
-              <tr>
-                <th class="px-6 py-3 font-semibold">文件名称</th>
-                <th class="px-6 py-3 font-semibold">文件类型</th>
-                <th class="px-6 py-3 font-semibold">语言</th>
-                <th class="px-6 py-3 font-semibold">大小</th>
-                <th class="px-6 py-3 font-semibold text-right">操作</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="file in filteredLinkedFiles"
-                :key="file.id"
-                class="hover:bg-slate-50 transition-colors"
-              >
-                <td class="px-6 py-4 font-medium text-slate-800 flex items-center gap-2">
-                  <Icon icon="ant-design:file-text-outlined" class="w-4 h-4 text-slate-400" />
-                  {{ file.name }}
-                </td>
-                <td class="px-6 py-4">
-                  <span
-                    class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100"
-                  >
-                    {{ getManualTypeLabel(file.manualType || '') }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-slate-600">{{
-                  getLanguageLabel(file.language || '')
-                }}</td>
-                <td class="px-6 py-4 text-slate-500 font-mono text-xs">{{ file.size }}</td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex justify-end gap-2">
-                    <button
-                      class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-600 bg-white border border-slate-200 rounded-md hover:bg-emerald-50 hover:border-emerald-200 transition-colors"
-                    >
-                      <Icon icon="ant-design:book-outlined" class="w-3.5 h-3.5" />
-                      阅读
-                    </button>
-                    <button
-                      @click="goToFileDetail(file)"
-                      class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-white border border-slate-200 rounded-md hover:bg-indigo-50 hover:border-indigo-200 transition-colors"
-                    >
-                      <Icon icon="ant-design:export-outlined" class="w-3.5 h-3.5" />
-                      详情
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="filteredLinkedFiles.length === 0">
-                <td colspan="5" class="py-12 text-center text-slate-400">暂无相关文档</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+        </template>
+        <a-table
+          :columns="linkedFileColumns"
+          :data-source="filteredLinkedFiles"
+          :pagination="false"
+          row-key="id"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'name'">
+              <div class="flex items-center gap-2">
+                <Icon icon="ant-design:file-text-outlined" class="text-slate-400" />
+                {{ record.name }}
+              </div>
+            </template>
+            <template v-if="column.key === 'manualType'">
+              <a-tag color="blue">{{ getManualTypeLabel(record.manualType || '') }}</a-tag>
+            </template>
+            <template v-if="column.key === 'language'">
+              {{ getLanguageLabel(record.language || '') }}
+            </template>
+            <template v-if="column.key === 'size'">
+              <span class="font-mono text-xs">{{ record.size }}</span>
+            </template>
+            <template v-if="column.key === 'action'">
+              <a-space>
+                <a-button size="small" @click="goToFileDetail(record)">
+                  <template #icon>
+                    <Icon icon="ant-design:export-outlined" />
+                  </template>
+                  详情
+                </a-button>
+              </a-space>
+            </template>
+          </template>
+        </a-table>
+      </a-card>
     </div>
 
     <!-- 文件详情视图 -->
@@ -408,123 +293,87 @@
     >
       <!-- 头部 -->
       <div class="flex items-center gap-4 border-b border-slate-200 pb-4 mb-2">
-        <button
-          @click="backToDeviceDetail"
-          class="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
-        >
-          <Icon icon="ant-design:arrow-left-outlined" class="w-5 h-5" />
-        </button>
+        <a-button shape="circle" @click="backToDeviceDetail">
+          <template #icon>
+            <Icon icon="ant-design:arrow-left-outlined" />
+          </template>
+        </a-button>
         <div>
           <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
             {{ selectedFileForDetail.name }}
-            <span class="text-sm font-normal px-2 py-0.5 bg-slate-100 rounded text-slate-500">{{
-              selectedFileForDetail.version || 'v1.0'
-            }}</span>
+            <a-tag>{{ selectedFileForDetail.version || 'v1.0' }}</a-tag>
           </h1>
           <p class="text-slate-500 text-sm">文档详细信息与设备关联管理</p>
         </div>
       </div>
 
       <!-- 基本属性 -->
-      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
-        <h3
-          class="font-bold text-slate-800 border-l-4 border-blue-500 pl-3 flex items-center gap-2"
-        >
-          基本属性
-        </h3>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">文件类型</label>
-            <div class="text-sm text-slate-700 font-medium">
-              {{ selectedFileForDetail.type }} ({{
-                MANUAL_TYPE_MAP[selectedFileForDetail.manualType || ''] || '-'
-              }})
-            </div>
+      <a-card :bordered="false" class="shadow-sm rounded-xl">
+        <template #title>
+          <div class="flex items-center gap-2">
+            <div class="w-1 h-4 bg-blue-500 rounded-full"></div>
+            <span>基本属性</span>
           </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">语言</label>
-            <div class="text-sm text-slate-700 font-medium">
-              {{ getLanguageLabel(selectedFileForDetail.language || '') }}
-            </div>
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">文件大小</label>
-            <div class="text-sm text-slate-700 font-medium font-mono">
-              {{ selectedFileForDetail.size }}
-            </div>
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">版本</label>
-            <div class="text-sm text-slate-700 font-medium">
-              {{ selectedFileForDetail.version || 'v1.0' }}
-            </div>
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">上传人</label>
-            <div class="text-sm text-slate-700 font-medium">{{
-              selectedFileForDetail.creator
-            }}</div>
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">上传时间</label>
-            <div class="text-sm text-slate-700 font-medium">
-              {{ selectedFileForDetail.uploadDate }}
-            </div>
-          </div>
-        </div>
-      </div>
+        </template>
+        <a-descriptions :column="{ xxl: 4, xl: 4, lg: 2, md: 2, sm: 1, xs: 1 }">
+          <a-descriptions-item label="文件类型">
+            {{ selectedFileForDetail.type }} ({{
+              MANUAL_TYPE_MAP[selectedFileForDetail.manualType || ''] || '-'
+            }})
+          </a-descriptions-item>
+          <a-descriptions-item label="语言">
+            {{ getLanguageLabel(selectedFileForDetail.language || '') }}
+          </a-descriptions-item>
+          <a-descriptions-item label="文件大小">
+            <span class="font-mono">{{ selectedFileForDetail.size }}</span>
+          </a-descriptions-item>
+          <a-descriptions-item label="版本">
+            {{ selectedFileForDetail.version || 'v1.0' }}
+          </a-descriptions-item>
+          <a-descriptions-item label="上传人">
+            {{ selectedFileForDetail.creator }}
+          </a-descriptions-item>
+          <a-descriptions-item label="上传时间">
+            {{ selectedFileForDetail.uploadDate }}
+          </a-descriptions-item>
+        </a-descriptions>
+      </a-card>
 
       <!-- 关联设备概览 -->
-      <div class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col">
-        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-          <h3
-            class="font-bold text-slate-800 border-l-4 border-emerald-500 pl-3 flex items-center gap-2"
-          >
-            关联设备概览 ({{ fileBoundDevices.length }})
-          </h3>
-        </div>
-
-        <div class="flex-1 overflow-x-auto">
-          <table class="w-full text-left text-sm whitespace-nowrap">
-            <thead class="bg-slate-50 text-slate-500">
-              <tr>
-                <th class="px-6 py-3 font-semibold">设备名称</th>
-                <th class="px-6 py-3 font-semibold">型号</th>
-                <th class="px-6 py-3 font-semibold">序列号</th>
-                <th class="px-6 py-3 font-semibold">分类</th>
-                <th class="px-6 py-3 font-semibold">创建时间</th>
-                <th class="px-6 py-3 font-semibold">创建人</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="dev in fileBoundDevices"
-                :key="dev.id"
-                class="hover:bg-slate-50 transition-colors"
-              >
-                <td class="px-6 py-4 font-medium text-slate-800">{{ dev.name }}</td>
-                <td class="px-6 py-4 text-slate-600">{{ dev.model }}</td>
-                <td class="px-6 py-4 text-slate-500 font-mono text-xs">{{ dev.sn }}</td>
-                <td class="px-6 py-4 text-slate-500 text-xs">
-                  <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600">{{
-                    getCategoryDisplay(dev.categoryId)
-                  }}</span>
-                </td>
-                <td class="px-6 py-4 text-slate-500">{{ dev.createdAt }}</td>
-                <td class="px-6 py-4 text-slate-500">{{ dev.creator }}</td>
-              </tr>
-              <tr v-if="fileBoundDevices.length === 0">
-                <td colspan="6" class="py-12 text-center text-slate-400">暂未关联任何设备</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <a-card :bordered="false" class="shadow-sm rounded-xl flex-1 flex flex-col">
+        <template #title>
+          <div class="flex items-center gap-2">
+            <div class="w-1 h-4 bg-emerald-500 rounded-full"></div>
+            <span>关联设备概览 ({{ fileBoundDevices.length }})</span>
+          </div>
+        </template>
+        <a-table
+          :columns="boundDeviceColumns"
+          :data-source="fileBoundDevices"
+          :pagination="false"
+          row-key="id"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'sn'">
+              <span class="font-mono text-xs">{{ record.sn }}</span>
+            </template>
+            <template v-if="column.key === 'category'">
+              <a-tag>{{ getCategoryDisplay(record.categoryId) }}</a-tag>
+            </template>
+          </template>
+        </a-table>
+      </a-card>
     </div>
 
     <!-- 关联文档模态框 -->
-    <NexusModal v-model:visible="isBindModalOpen" title="关联技术文档" width="1200px">
-      <div class="flex flex-col h-[70vh]">
+    <a-modal
+      v-model:visible="isBindModalOpen"
+      title="关联技术文档"
+      width="1000px"
+      @ok="saveBindings"
+      @cancel="isBindModalOpen = false"
+    >
+      <div class="flex flex-col h-[60vh]">
         <div class="mb-4 space-y-3">
           <div class="flex justify-between items-center">
             <p class="text-sm text-slate-500">
@@ -534,342 +383,157 @@
               }}</span>
               管理关联文档。
             </p>
-            <div class="flex items-center gap-3">
-              <span class="text-xs text-indigo-600 font-medium bg-indigo-50 px-2 py-1 rounded-full">
-                已选: {{ selectedForBinding.size }} 个文件
-              </span>
-            </div>
+            <a-tag color="blue">已选: {{ selectedForBinding.size }} 个文件</a-tag>
           </div>
 
           <!-- 筛选区域 -->
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-12 gap-3">
-            <div class="col-span-4 relative">
-              <Icon
-                icon="ant-design:search-outlined"
-                class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"
-              />
-              <input
-                v-model="bindSearchTerm"
-                type="text"
-                placeholder="搜索文件名称..."
-                class="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            <div class="col-span-3">
-              <select
-                v-model="bindFilterCategory"
-                class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-              >
-                <option value="">全部分类</option>
-                <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-              </select>
-            </div>
-            <div class="col-span-3">
-              <select
-                v-model="bindFilterLang"
-                class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-              >
-                <option value="">全部语言</option>
-                <option v-for="l in LANGUAGE_OPTIONS" :key="l.code" :value="l.code">
-                  {{ l.label }}
-                </option>
-              </select>
-            </div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3">
+            <a-input
+              v-model:value="bindSearchTerm"
+              placeholder="搜索文件名称..."
+              class="flex-1"
+              allow-clear
+            >
+              <template #prefix>
+                <Icon icon="ant-design:search-outlined" class="text-slate-400" />
+              </template>
+            </a-input>
+            <a-select v-model:value="bindFilterCategory" class="w-40" placeholder="全部分类">
+              <a-select-option value="">全部分类</a-select-option>
+              <a-select-option v-for="c in categories" :key="c.id" :value="c.id">
+                {{ c.name }}
+              </a-select-option>
+            </a-select>
+            <a-select v-model:value="bindFilterLang" class="w-40" placeholder="全部语言">
+              <a-select-option value="">全部语言</a-select-option>
+              <a-select-option v-for="l in LANGUAGE_OPTIONS" :key="l.code" :value="l.code">
+                {{ l.label }}
+              </a-select-option>
+            </a-select>
           </div>
         </div>
 
         <!-- 文件列表区域 -->
-        <div class="flex-1 overflow-hidden border border-slate-200 rounded-lg flex flex-col">
-          <div class="overflow-y-auto custom-scrollbar flex-1 bg-white">
-            <table class="w-full text-left text-sm whitespace-nowrap">
-              <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
-                <tr>
-                  <th class="px-4 py-3 font-semibold text-slate-700 w-16 text-center">选择</th>
-                  <th class="px-4 py-3 font-semibold text-slate-700">文件名称</th>
-                  <th class="px-4 py-3 font-semibold text-slate-700">语言</th>
-                  <th class="px-4 py-3 font-semibold text-slate-700">类型</th>
-                  <th class="px-4 py-3 font-semibold text-slate-700">上传时间</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr v-if="filteredBindFiles.length === 0">
-                  <td colspan="5" class="py-12 text-center text-slate-400">暂无匹配文件</td>
-                </tr>
-                <tr
-                  v-for="file in filteredBindFiles"
-                  v-else
-                  :key="file.id"
-                  :class="[
-                    'hover:bg-indigo-50/50 transition-colors cursor-pointer',
-                    selectedForBinding.has(file.id) ? 'bg-indigo-50/30' : '',
-                  ]"
-                  @click="handleToggleFile(file.id)"
-                >
-                  <td class="px-4 py-3 text-center">
-                    <input
-                      type="checkbox"
-                      :checked="selectedForBinding.has(file.id)"
-                      @change="handleToggleFile(file.id)"
-                      class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
-                    />
-                  </td>
-                  <td class="px-4 py-3 font-medium text-slate-800 flex items-center gap-2">
-                    <Icon
-                      icon="ant-design:file-text-outlined"
-                      :class="[
-                        'w-4 h-4',
-                        selectedForBinding.has(file.id) ? 'text-indigo-500' : 'text-slate-400',
-                      ]"
-                    />
-                    {{ file.name }}
-                  </td>
-                  <td class="px-4 py-3 text-slate-600">{{
-                    getLanguageLabel(file.language || '')
-                  }}</td>
-                  <td class="px-4 py-3">
-                    <span
-                      class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] border border-slate-200 uppercase font-medium"
-                    >
-                      {{ getManualTypeLabel(file.manualType || '') }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3 text-slate-500 text-xs">{{ file.uploadDate }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-auto">
-          <button
-            @click="isBindModalOpen = false"
-            class="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium"
+        <div class="flex-1 overflow-hidden border border-slate-200 rounded-lg">
+          <a-table
+            :columns="bindFileColumns"
+            :data-source="filteredBindFiles"
+            :pagination="false"
+            row-key="id"
+            :scroll="{ y: 'calc(60vh - 120px)' }"
+            :row-selection="{
+              selectedRowKeys: Array.from(selectedForBinding),
+              onSelect: handleBindSelect,
+              onSelectAll: handleBindSelectAll,
+            }"
           >
-            取消
-          </button>
-          <button
-            @click="saveBindings"
-            class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium shadow-sm"
-          >
-            确认关联 ({{ selectedForBinding.size }})
-          </button>
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'name'">
+                <div class="flex items-center gap-2">
+                  <Icon icon="ant-design:file-text-outlined" class="text-slate-400" />
+                  {{ record.name }}
+                </div>
+              </template>
+              <template v-if="column.key === 'language'">
+                {{ getLanguageLabel(record.language || '') }}
+              </template>
+              <template v-if="column.key === 'manualType'">
+                <a-tag>{{ getManualTypeLabel(record.manualType || '') }}</a-tag>
+              </template>
+            </template>
+          </a-table>
         </div>
       </div>
-    </NexusModal>
+    </a-modal>
 
     <!-- 新建/编辑设备模态框 -->
-    <NexusModal
+    <a-modal
       v-model:visible="isEditModalOpen"
       :title="isNew ? '新建设备' : '编辑设备'"
-      width="1200px"
+      width="1000px"
+      @ok="saveDevice"
+      @cancel="isEditModalOpen = false"
     >
-      <div
-        class="flex flex-col space-y-6 bg-slate-50/50 -m-6 p-8"
-        style="max-height: 65vh; overflow-y: auto"
-      >
+      <a-form layout="vertical" class="max-h-[65vh] overflow-y-auto p-1">
         <!-- Group 1: 基础信息 -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <h3
-            class="text-sm font-bold text-slate-800 border-l-4 border-indigo-600 pl-3 mb-5 flex items-center gap-2"
-          >
-            基本信息
-            <span class="text-xs font-normal text-slate-400 px-2 py-0.5 bg-slate-100 rounded-full"
-              >Group 1</span
-            >
-          </h3>
+        <a-card title="基本信息" size="small" class="mb-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- 设备分类 -->
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1.5"
-                >设备分类 <span class="text-red-500">*</span></label
-              >
-              <select
-                v-model="editingDevice.categoryId"
+            <a-form-item label="设备分类" required>
+              <a-select
+                v-model:value="editingDevice.categoryId"
                 :disabled="!isNew"
-                @change="handleCategoryChange(editingDevice.categoryId || '')"
-                class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white transition-all hover:border-indigo-200"
+                @change="handleCategoryChange"
+                placeholder="请选择分类"
               >
-                <option value="">-- 请选择分类 --</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                <a-select-option v-for="cat in categories" :key="cat.id" :value="cat.id">
                   {{ cat.name }} ({{ cat.description }})
-                </option>
-              </select>
-            </div>
-
-            <!-- 设备型号 -->
-            <div class="relative">
-              <label class="block text-sm font-medium text-slate-700 mb-1.5"
-                >设备型号 <span class="text-red-500">*</span></label
-              >
-              <div class="relative">
-                <input
-                  v-model="editingDevice.model"
-                  :disabled="!isNew"
-                  @input="handleModelChange(editingDevice.model || '')"
-                  placeholder="请输入或选择型号"
-                  autocomplete="off"
-                  class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all hover:border-indigo-200"
-                />
-                <Icon
-                  icon="ant-design:down-outlined"
-                  class="absolute right-3 top-3 w-4 h-4 text-slate-400 pointer-events-none"
-                />
-              </div>
-            </div>
-
-            <!-- 设备名称 -->
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1.5"
-                >设备名称 <span class="text-xs text-slate-400 font-normal">(自动)</span></label
-              >
-              <input
-                v-model="editingDevice.name"
-                readonly
-                placeholder="自动生成"
-                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-500 cursor-not-allowed font-medium"
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item label="设备型号" required>
+              <a-auto-complete
+                v-model:value="editingDevice.model"
+                :disabled="!isNew"
+                @change="handleModelChange"
+                placeholder="请输入或选择型号"
               />
-            </div>
-
-            <!-- 版本号 -->
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1.5">设备版本号</label>
-              <input
-                v-model="editingDevice.version"
-                placeholder="如 v1.0"
-                class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all hover:border-indigo-200"
-              />
-            </div>
-
-            <!-- 序列号 -->
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1.5"
-                >序列号 <span class="text-red-500">*</span></label
-              >
-              <input
-                v-model="editingDevice.sn"
-                placeholder="请输入设备序列号"
-                class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all hover:border-indigo-200"
-              />
-            </div>
+            </a-form-item>
+            <a-form-item label="设备名称">
+              <a-input v-model:value="editingDevice.name" readonly placeholder="自动生成" />
+            </a-form-item>
+            <a-form-item label="设备版本号">
+              <a-input v-model:value="editingDevice.version" placeholder="如 v1.0" />
+            </a-form-item>
+            <a-form-item label="序列号" required>
+              <a-input v-model:value="editingDevice.sn" placeholder="请输入设备序列号" />
+            </a-form-item>
           </div>
-        </div>
+        </a-card>
 
         <!-- Group 2: 设备参数设置 -->
-        <div
-          class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col min-h-0"
-        >
-          <div class="flex items-center justify-between mb-4">
-            <h3
-              class="text-sm font-bold text-slate-800 border-l-4 border-emerald-500 pl-3 flex items-center gap-2"
-            >
-              设备参数设置
-              <span class="text-xs font-normal text-slate-400 px-2 py-0.5 bg-slate-100 rounded-full"
-                >Group 2</span
-              >
-            </h3>
-            <span
-              v-if="!editingDevice.categoryId"
-              class="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100 flex items-center gap-1"
-            >
-              <Icon icon="ant-design:info-circle-outlined" class="w-3 h-3" />
-              请先选择分类以加载参数
-            </span>
+        <a-card title="设备参数设置" size="small" class="mb-4">
+          <div v-if="!editingDevice.categoryId" class="text-center py-4 text-slate-400">
+            请先选择分类以加载参数
           </div>
-
-          <div class="bg-slate-50/50 border border-slate-100 rounded-xl p-4">
+          <div
+            v-else-if="currentCategoryAttrs.length === 0"
+            class="text-center py-4 text-slate-400"
+          >
+            该分类暂无参数定义
+          </div>
+          <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <div
-              v-if="currentCategoryAttrs.length === 0"
-              class="flex flex-col items-center justify-center text-slate-400 py-6"
+              v-for="attr in currentCategoryAttrs"
+              :key="attr.id"
+              class="p-3 rounded-lg border border-slate-200"
+              :class="{ 'bg-slate-50 opacity-75': !attr.visible }"
             >
-              <div
-                class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mb-2"
-              >
-                <Icon icon="ant-design:info-circle-outlined" class="w-5 h-5 text-slate-300" />
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-semibold">{{ attr.name }}</span>
+                <a-tag :color="attr.visible ? 'success' : 'default'" class="text-[10px] m-0">
+                  {{ attr.visible ? 'Visible' : 'Hidden' }}
+                </a-tag>
               </div>
-              <p class="text-sm">该分类暂无参数定义</p>
-            </div>
-            <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <div
-                v-for="attr in currentCategoryAttrs"
-                :key="attr.id"
-                :class="[
-                  'p-3 rounded-lg border shadow-sm flex flex-col gap-2 transition-shadow',
-                  !attr.visible
-                    ? 'bg-slate-100 border-slate-200 opacity-80'
-                    : 'bg-white border-slate-200 hover:shadow-md',
-                ]"
+              <a-input
+                v-model:value="formParams[attr.name]"
+                :disabled="!attr.visible"
+                :placeholder="!attr.visible ? '无需填写' : '输入参数值'"
+                size="small"
               >
-                <div class="flex justify-between items-start">
-                  <label
-                    :class="[
-                      'text-xs font-semibold truncate',
-                      !attr.visible ? 'text-slate-400' : 'text-slate-700',
-                    ]"
-                    :title="attr.name"
-                  >
-                    {{ attr.name }}
-                  </label>
-                  <div
-                    :class="[
-                      'px-1.5 py-0.5 rounded text-[9px] font-medium border flex items-center gap-0.5 shrink-0',
-                      attr.visible
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                        : 'bg-slate-200 text-slate-500 border-slate-300',
-                    ]"
-                  >
-                    <Icon
-                      :icon="
-                        attr.visible
-                          ? 'ant-design:eye-outlined'
-                          : 'ant-design:eye-invisible-outlined'
-                      "
-                      class="w-2.5 h-2.5"
-                    />
-                    {{ attr.visible ? 'Visible' : 'Hidden' }}
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-1">
-                  <input
-                    v-model="formParams[attr.name]"
-                    type="text"
-                    :disabled="!attr.visible"
-                    :placeholder="!attr.visible ? '无需填写' : '输入参数值'"
-                    :title="!attr.visible ? '该参数已被定义为隐藏，无需填写' : ''"
-                    :class="[
-                      'flex-1 px-2 py-1.5 text-sm border rounded outline-none transition-colors',
-                      !attr.visible
-                        ? 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed select-none'
-                        : 'focus:ring-1 focus:ring-emerald-500 bg-white border-slate-200',
-                    ]"
-                  />
-                  <span
-                    v-if="attr.unit"
-                    class="text-xs text-slate-400 shrink-0 bg-slate-100 px-1.5 py-1 rounded"
-                    >{{ attr.unit }}</span
-                  >
-                </div>
-              </div>
+                <template #suffix v-if="attr.unit">
+                  <span class="text-xs text-slate-400">{{ attr.unit }}</span>
+                </template>
+              </a-input>
             </div>
           </div>
-        </div>
+        </a-card>
 
         <!-- Group 4: 二维码配置 -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <h3
-            class="text-sm font-bold text-slate-800 border-l-4 border-purple-500 pl-3 mb-5 flex items-center gap-2"
-          >
-            二维码配置
-            <span class="text-xs font-normal text-slate-400 px-2 py-0.5 bg-slate-100 rounded-full"
-              >Group 4</span
-            >
-            <span class="text-xs font-normal text-purple-400 italic ml-auto">生成后不可变</span>
-          </h3>
-          <div class="flex flex-col md:flex-row gap-8 items-start">
-            <!-- Left: Logo Area -->
-            <div class="flex-shrink-0 flex flex-col items-center gap-3">
+        <a-card title="二维码配置" size="small">
+          <div class="flex gap-6">
+            <div class="flex flex-col items-center gap-2">
               <div
-                class="w-24 h-24 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center overflow-hidden shadow-inner group relative"
+                class="w-24 h-24 border border-slate-200 rounded-lg flex items-center justify-center overflow-hidden"
               >
                 <Icon
                   v-if="!editingDevice.qrLogo"
@@ -880,80 +544,55 @@
                   v-else
                   :src="editingDevice.qrLogo"
                   alt="Logo"
-                  class="w-full h-full object-contain p-2"
+                  class="w-full h-full object-contain"
                 />
               </div>
-              <button
-                :disabled="!isNew"
-                class="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 text-slate-600 shadow-sm transition-all"
-              >
-                <Icon icon="ant-design:upload-outlined" class="w-3 h-3" />
+              <a-button size="small" :disabled="!isNew">
+                <template #icon>
+                  <Icon icon="ant-design:upload-outlined" />
+                </template>
                 {{ editingDevice.qrLogo ? '更换Logo' : '上传Logo' }}
-              </button>
+              </a-button>
             </div>
-
-            <!-- Right: Info Inputs -->
-            <div class="flex-1 space-y-5 w-full">
-              <div>
-                <label
-                  class="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide"
-                  >序列化地址 (自动生成)</label
-                >
+            <div class="flex-1 space-y-4">
+              <a-form-item label="序列化地址 (自动生成)">
                 <div
-                  class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 font-mono break-all flex items-center min-h-[46px]"
+                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm font-mono break-all"
                 >
-                  <span v-if="qrSerializedAddress">{{ qrSerializedAddress }}</span>
-                  <span v-else class="text-slate-400 italic">待输入设备名称和SN以生成...</span>
+                  {{ qrSerializedAddress || '待输入设备名称和SN以生成...' }}
                 </div>
-              </div>
-              <div>
-                <label
-                  class="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide"
-                  >二维码描述信息</label
-                >
-                <input
-                  v-model="editingDevice.qrDesc"
+              </a-form-item>
+              <a-form-item label="二维码描述信息">
+                <a-input
+                  v-model:value="editingDevice.qrDesc"
                   :disabled="!isNew"
                   placeholder="请输入扫描二维码后显示的描述信息"
-                  class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all hover:border-purple-200"
                 />
-              </div>
+              </a-form-item>
             </div>
           </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button
-            @click="isEditModalOpen = false"
-            class="px-6 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
-          >
-            取消
-          </button>
-          <button
-            @click="saveDevice"
-            class="px-8 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-200 transition-all active:scale-95"
-          >
-            提交保存
-          </button>
-        </div>
-      </template>
-    </NexusModal>
+        </a-card>
+      </a-form>
+    </a-modal>
 
     <!-- 二维码预览模态框 -->
-    <NexusModal v-model:visible="isQrPreviewModalOpen" title="下载二维码" width="400px">
+    <a-modal
+      v-model:visible="isQrPreviewModalOpen"
+      title="下载二维码"
+      width="400px"
+      @ok="handleQrDownload"
+      @cancel="isQrPreviewModalOpen = false"
+      ok-text="下载"
+    >
       <div v-if="qrPreviewDevice" class="flex flex-col items-center py-4">
         <div class="bg-white p-4 border-2 border-slate-800 rounded-lg mb-4 relative shadow-lg">
           <!-- 模拟二维码视觉 -->
           <div
             class="w-48 h-48 bg-slate-100 flex items-center justify-center relative overflow-hidden"
           >
-            <!-- Corner markers -->
             <div class="absolute top-2 left-2 w-8 h-8 border-4 border-black"></div>
             <div class="absolute top-2 right-2 w-8 h-8 border-4 border-black"></div>
             <div class="absolute bottom-2 left-2 w-8 h-8 border-4 border-black"></div>
-            <!-- Content -->
             <div class="grid grid-cols-6 grid-rows-6 gap-1 w-32 h-32 opacity-80">
               <div
                 v-for="i in 36"
@@ -961,7 +600,6 @@
                 :class="['bg-black', Math.random() > 0.5 ? 'opacity-100' : 'opacity-0']"
               ></div>
             </div>
-            <!-- Logo overlay if exists -->
             <div
               v-if="qrPreviewDevice.qrLogo"
               class="absolute inset-0 flex items-center justify-center"
@@ -976,33 +614,52 @@
           </p>
           <p class="text-center text-xs text-slate-400">{{ qrPreviewDevice.sn }}</p>
         </div>
-
-        <div class="flex gap-3 w-full">
-          <button
-            @click="isQrPreviewModalOpen = false"
-            class="flex-1 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors"
-          >
-            取消
-          </button>
-          <button
-            @click="handleQrDownload"
-            class="flex-1 py-2.5 bg-indigo-600 rounded-lg text-white font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center justify-center gap-2"
-          >
-            <Icon icon="ant-design:download-outlined" class="w-4 h-4" />
-            下载
-          </button>
-        </div>
       </div>
-    </NexusModal>
+    </a-modal>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { ref, reactive, computed } from 'vue'
+  import { ref, reactive, computed, watch } from 'vue'
+  import {
+    Table,
+    Button,
+    Input,
+    Select,
+    DatePicker,
+    Modal,
+    Form,
+    Card,
+    Descriptions,
+    Tag,
+    Space,
+    message,
+    Tooltip,
+    Popconfirm,
+    AutoComplete,
+  } from 'ant-design-vue'
   import { Icon } from '/@/components/Icon'
-  import NexusModal from '../components/NexusModal.vue'
   import { MANUAL_TYPE_MAP, LANGUAGE_OPTIONS } from '../constants'
   import type { Device, DocFile, Category, CategoryAttribute } from '../types'
+
+  // Component aliases for template usage
+  const ATable = Table
+  const AButton = Button
+  const AInput = Input
+  const ASelect = Select
+  const ASelectOption = Select.Option
+  const ADatePicker = DatePicker
+  const AModal = Modal
+  const AForm = Form
+  const AFormItem = Form.Item
+  const ACard = Card
+  const ADescriptions = Descriptions
+  const ADescriptionsItem = Descriptions.Item
+  const ATag = Tag
+  const ASpace = Space
+  const ATooltip = Tooltip
+  const APopconfirm = Popconfirm
+  const AAutoComplete = AutoComplete
 
   // Mock 数据
   const mockCategories: Category[] = [
@@ -1212,46 +869,54 @@
   // 二维码预览
   const qrPreviewDevice = ref<Device | null>(null)
 
-  // Toast 状态
-  const toast = reactive({
-    show: false,
-    msg: '',
-    type: 'success' as 'success' | 'error' | 'warning',
+  // Pagination
+  const pagination = reactive({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+    showSizeChanger: true,
+    showQuickJumper: true,
   })
 
-  // Toast 样式
-  const toastClass = computed(() => {
-    const baseClass =
-      'fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-lg shadow-xl font-medium animate-in fade-in slide-in-from-top-4 duration-300 flex items-center gap-2 text-white'
-    const typeClass =
-      toast.type === 'success'
-        ? 'bg-emerald-600'
-        : toast.type === 'error'
-        ? 'bg-red-600'
-        : 'bg-amber-500'
-    return `${baseClass} ${typeClass}`
-  })
+  // Table Columns
+  const columns = [
+    { title: '设备名称', key: 'name', dataIndex: 'name' },
+    { title: '设备分类', key: 'category', dataIndex: 'categoryId' },
+    { title: '设备型号', key: 'model', dataIndex: 'model' },
+    { title: '序列号', key: 'sn', dataIndex: 'sn' },
+    { title: '关联文档', key: 'linked', dataIndex: 'id' },
+    { title: '创建时间', key: 'createdAt', dataIndex: 'createdAt' },
+    { title: '创建人', key: 'creator', dataIndex: 'creator' },
+    { title: '操作', key: 'action', width: 200, align: 'right' },
+  ]
 
-  // Toast 图标名称
-  const toastIconName = computed(() => {
-    if (toast.type === 'success') return 'ant-design:check-circle-filled'
-    if (toast.type === 'error') return 'ant-design:close-circle-filled'
-    return 'ant-design:info-circle-filled'
-  })
+  const linkedFileColumns = [
+    { title: '文件名称', key: 'name', dataIndex: 'name' },
+    { title: '文件类型', key: 'manualType', dataIndex: 'manualType' },
+    { title: '语言', key: 'language', dataIndex: 'language' },
+    { title: '大小', key: 'size', dataIndex: 'size' },
+    { title: '操作', key: 'action', align: 'right' },
+  ]
 
-  // Toast 提示
-  const showToast = (msg: string, type: 'success' | 'error' | 'warning' = 'success') => {
-    toast.show = true
-    toast.msg = msg
-    toast.type = type
-    setTimeout(() => {
-      toast.show = false
-    }, 3000)
-  }
+  const boundDeviceColumns = [
+    { title: '设备名称', key: 'name', dataIndex: 'name' },
+    { title: '型号', key: 'model', dataIndex: 'model' },
+    { title: '序列号', key: 'sn', dataIndex: 'sn' },
+    { title: '分类', key: 'category', dataIndex: 'categoryId' },
+    { title: '创建时间', key: 'createdAt', dataIndex: 'createdAt' },
+    { title: '创建人', key: 'creator', dataIndex: 'creator' },
+  ]
+
+  const bindFileColumns = [
+    { title: '文件名称', key: 'name', dataIndex: 'name' },
+    { title: '语言', key: 'language', dataIndex: 'language' },
+    { title: '类型', key: 'manualType', dataIndex: 'manualType' },
+    { title: '上传时间', key: 'uploadDate', dataIndex: 'uploadDate' },
+  ]
 
   // 筛选逻辑
   const filteredDevices = computed(() => {
-    return devices.value.filter((d) => {
+    const result = devices.value.filter((d) => {
       const catName = categories.value.find((c) => c.id === d.categoryId)?.name || ''
       const matchCatName =
         !filterCategory.value || catName.toLowerCase().includes(filterCategory.value.toLowerCase())
@@ -1278,7 +943,16 @@
 
       return matchCatName && matchName && matchModel && matchLinked && matchDate
     })
+    return result
   })
+
+  watch(
+    filteredDevices,
+    (val) => {
+      pagination.total = val.length
+    },
+    { immediate: true },
+  )
 
   const deviceLinkedFiles = computed(() => {
     if (!selectedDeviceForDetail.value) return []
@@ -1333,6 +1007,16 @@
     filterDateEnd.value = ''
   }
 
+  const handleSearch = () => {
+    // In a real app, this might trigger an API call
+    pagination.current = 1
+  }
+
+  const handleTableChange = (pag: any) => {
+    pagination.current = pag.current
+    pagination.pageSize = pag.pageSize
+  }
+
   const isDeviceLinked = (deviceId: string) => {
     const fileIds = mockDeviceFileBindings.value.get(deviceId) || []
     return fileIds.length > 0
@@ -1375,11 +1059,9 @@
 
   // 设备操作
   const handleDelete = (id: string) => {
-    if (confirm('确定要删除该设备吗?')) {
-      devices.value = devices.value.filter((d) => d.id !== id)
-      mockDeviceFileBindings.value.delete(id)
-      showToast('删除成功', 'success')
-    }
+    devices.value = devices.value.filter((d) => d.id !== id)
+    mockDeviceFileBindings.value.delete(id)
+    message.success('删除成功')
   }
 
   const openEditModal = (device?: Device) => {
@@ -1406,7 +1088,7 @@
         sn: '',
         version: '',
         status: 'active',
-        categoryId: '',
+        categoryId: undefined,
         createdAt: new Date().toISOString().split('T')[0],
         creator: 'Admin',
         parameters: {},
@@ -1449,15 +1131,15 @@
 
   const saveDevice = () => {
     if (!editingDevice.value.categoryId) {
-      showToast('请选择设备分类', 'error')
+      message.error('请选择设备分类')
       return
     }
     if (!editingDevice.value.model) {
-      showToast('请填写设备型号', 'error')
+      message.error('请填写设备型号')
       return
     }
     if (!editingDevice.value.sn) {
-      showToast('请填写序列号', 'error')
+      message.error('请填写序列号')
       return
     }
 
@@ -1488,7 +1170,7 @@
     }
 
     isEditModalOpen.value = false
-    showToast('保存成功', 'success')
+    message.success('保存成功')
   }
 
   // 关联操作
@@ -1502,11 +1184,24 @@
     isBindModalOpen.value = true
   }
 
-  const handleToggleFile = (fileId: string) => {
-    const next = new Set(selectedForBinding.value)
-    if (next.has(fileId)) next.delete(fileId)
-    else next.add(fileId)
-    selectedForBinding.value = next
+  const handleBindSelect = (record: DocFile, selected: boolean) => {
+    if (selected) {
+      selectedForBinding.value.add(record.id)
+    } else {
+      selectedForBinding.value.delete(record.id)
+    }
+  }
+
+  const handleBindSelectAll = (
+    selected: boolean,
+    selectedRows: DocFile[],
+    changeRows: DocFile[],
+  ) => {
+    if (selected) {
+      changeRows.forEach((row) => selectedForBinding.value.add(row.id))
+    } else {
+      changeRows.forEach((row) => selectedForBinding.value.delete(row.id))
+    }
   }
 
   const saveBindings = () => {
@@ -1516,7 +1211,7 @@
       Array.from(selectedForBinding.value),
     )
     isBindModalOpen.value = false
-    showToast('关联成功', 'success')
+    message.success('关联成功')
     selectedDeviceForBind.value = null
   }
 
@@ -1527,7 +1222,7 @@
   }
 
   const handleQrDownload = () => {
-    showToast('二维码已下载 (模拟)', 'success')
+    message.success('二维码已下载 (模拟)')
     isQrPreviewModalOpen.value = false
   }
 </script>
@@ -1586,23 +1281,5 @@
     to {
       transform: translateX(0);
     }
-  }
-
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f5f9;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
   }
 </style>
