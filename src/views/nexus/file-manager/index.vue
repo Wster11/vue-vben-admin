@@ -1,68 +1,80 @@
 <template>
-  <div class="p-4 h-full flex flex-col space-y-4 relative">
-    <!-- Toast -->
-    <div
-      v-if="toast.show"
-      :class="[
-        'fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-lg shadow-xl font-medium animate-in fade-in slide-in-from-top-4 duration-300 flex items-center gap-2',
-        toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white',
-      ]"
-    >
-      <Icon
-        :icon="
-          toast.type === 'success'
-            ? 'ant-design:check-circle-filled'
-            : 'ant-design:close-circle-filled'
-        "
-        class="w-5 h-5"
-      />
-      {{ toast.msg }}
-    </div>
-
-    <!-- PDF Viewer -->
-    <div
-      v-if="isPdfViewerOpen && selectedFileForDetail"
-      class="fixed inset-0 z-[110] bg-slate-900 flex flex-col animate-in fade-in duration-200"
-    >
-      <div
-        class="h-14 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-4 shrink-0"
-      >
-        <div class="flex items-center gap-4 text-slate-200">
-          <button
+  <!-- PDF Viewer - 使用 Teleport 挂载到 body -->
+  <Teleport to="body">
+    <div v-if="isPdfViewerOpen && selectedFileForDetail" class="pdf-viewer-overlay">
+      <!-- Header Toolbar -->
+      <div class="pdf-viewer-header">
+        <div class="flex items-center gap-4">
+          <AButton
+            type="text"
+            shape="circle"
+            size="large"
             @click="isPdfViewerOpen = false"
-            class="p-2 hover:bg-slate-700 rounded-full transition-colors"
+            class="pdf-viewer-btn-back"
           >
-            <Icon icon="ant-design:arrow-left-outlined" class="w-5 h-5" />
-          </button>
-          <span class="font-medium truncate max-w-md">{{ selectedFileForDetail.name }}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <button class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded">
-            <Icon icon="ant-design:zoom-out-outlined" class="w-5 h-5" />
-          </button>
-          <button class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded">
-            <Icon icon="ant-design:zoom-in-outlined" class="w-5 h-5" />
-          </button>
-          <button class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded">
-            <Icon icon="ant-design:fullscreen-outlined" class="w-5 h-5" />
-          </button>
-          <button class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded">
-            <Icon icon="ant-design:download-outlined" class="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-      <div class="flex-1 bg-slate-500 overflow-y-auto p-8 flex justify-center">
-        <div
-          class="bg-white shadow-2xl w-full max-w-4xl min-h-[1000px] p-12 flex flex-col items-center"
-        >
-          <h1 class="text-3xl font-bold text-slate-900 mb-8 border-b pb-4 w-full text-center">
+            <template #icon>
+              <ArrowLeftOutlined class="text-white text-lg" />
+            </template>
+          </AButton>
+          <span class="text-white text-base font-medium truncate max-w-md">
             {{ selectedFileForDetail.name }}
-          </h1>
-          <p class="text-slate-600">这里是文件预览区域 (模拟 PDF 内容)</p>
+          </span>
+        </div>
+
+        <ASpace :size="12">
+          <AButton type="text" shape="circle" size="large" class="pdf-viewer-btn">
+            <template #icon>
+              <ZoomOutOutlined class="text-slate-300 text-lg" />
+            </template>
+          </AButton>
+          <AButton type="text" shape="circle" size="large" class="pdf-viewer-btn">
+            <template #icon>
+              <ZoomInOutlined class="text-slate-300 text-lg" />
+            </template>
+          </AButton>
+          <AButton type="text" shape="circle" size="large" class="pdf-viewer-btn">
+            <template #icon>
+              <FullscreenOutlined class="text-slate-300 text-lg" />
+            </template>
+          </AButton>
+          <AButton type="text" shape="circle" size="large" class="pdf-viewer-btn">
+            <template #icon>
+              <DownloadOutlined class="text-slate-300 text-lg" />
+            </template>
+          </AButton>
+        </ASpace>
+      </div>
+
+      <!-- PDF Content Area -->
+      <div class="pdf-viewer-content">
+        <div class="pdf-viewer-paper">
+          <div class="space-y-6">
+            <h1
+              class="text-3xl font-bold text-slate-900 mb-8 pb-4 border-b-2 border-slate-200 text-center"
+            >
+              {{ selectedFileForDetail.name }}
+            </h1>
+            <div class="text-slate-700 leading-relaxed space-y-4">
+              <p class="text-center text-slate-500 text-lg">文件预览区域</p>
+              <div class="mt-8 space-y-3 text-sm text-slate-600">
+                <p><strong>文件类型：</strong>{{ selectedFileForDetail.type }}</p>
+                <p><strong>文件大小：</strong>{{ selectedFileForDetail.size }}</p>
+                <p><strong>上传时间：</strong>{{ selectedFileForDetail.uploadDate }}</p>
+                <p><strong>版本号：</strong>{{ selectedFileForDetail.version }}</p>
+              </div>
+              <div class="mt-12 p-8 bg-slate-50 rounded-lg">
+                <p class="text-slate-500 text-center">
+                  实际使用时，这里可以集成 PDF.js 或其他 PDF 预览库
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </Teleport>
 
+  <div class="p-4 h-full flex flex-col space-y-4 relative">
     <!-- 列表视图 -->
     <template v-if="viewMode === 'LIST'">
       <div class="flex justify-between items-center">
@@ -71,13 +83,12 @@
           <p class="text-slate-500 text-sm">集中管理所有技术文档与资料</p>
         </div>
         <div class="flex gap-2">
-          <button
-            @click="openUploadModal"
-            class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium"
-          >
-            <Icon icon="ant-design:upload-outlined" class="w-4 h-4" />
+          <a-button type="primary" size="large" @click="openUploadModal">
+            <template #icon>
+              <UploadOutlined />
+            </template>
             上传文件
-          </button>
+          </a-button>
         </div>
       </div>
 
@@ -86,63 +97,72 @@
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
           <div class="col-span-1 md:col-span-1 lg:col-span-2">
             <label class="block text-xs font-medium text-slate-500 mb-1">文件名称</label>
-            <div class="relative">
-              <Icon
-                icon="ant-design:search-outlined"
-                class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"
-              />
-              <input
-                v-model="searchTerm"
-                type="text"
-                placeholder="搜索文件名称..."
-                class="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <a-input
+              v-model:value="searchTerm"
+              placeholder="搜索文件名称..."
+              size="default"
+              allow-clear
+            >
+              <template #prefix>
+                <SearchOutlined class="text-slate-400" />
+              </template>
+            </a-input>
           </div>
 
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1">设备分类</label>
-            <select
-              v-model="filterCategory"
-              class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            <a-select
+              v-model:value="filterCategory"
+              placeholder="全部分类"
+              size="default"
+              allow-clear
+              style="width: 100%"
             >
-              <option value="">全部分类</option>
-              <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
+              <a-select-option value="">全部分类</a-select-option>
+              <a-select-option v-for="c in categories" :key="c.id" :value="c.id">
+                {{ c.name }}
+              </a-select-option>
+            </a-select>
           </div>
 
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1">文档语言</label>
-            <select
-              v-model="filterLanguage"
-              class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            <a-select
+              v-model:value="filterLanguage"
+              placeholder="全部语言"
+              size="default"
+              allow-clear
+              style="width: 100%"
             >
-              <option value="">全部语言</option>
-              <option v-for="l in LANGUAGE_OPTIONS" :key="l.code" :value="l.code">
+              <a-select-option value="">全部语言</a-select-option>
+              <a-select-option v-for="l in LANGUAGE_OPTIONS" :key="l.code" :value="l.code">
                 {{ l.label }}
-              </option>
-            </select>
+              </a-select-option>
+            </a-select>
           </div>
 
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1">是否关联</label>
-            <select
-              v-model="filterLinked"
-              class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            <a-select
+              v-model:value="filterLinked"
+              placeholder="全部"
+              size="default"
+              style="width: 100%"
             >
-              <option value="all">全部</option>
-              <option value="yes">是</option>
-              <option value="no">否</option>
-            </select>
+              <a-select-option value="all">全部</a-select-option>
+              <a-select-option value="yes">是</a-select-option>
+              <a-select-option value="no">否</a-select-option>
+            </a-select>
           </div>
 
           <div class="flex gap-2">
             <div class="flex-1">
               <label class="block text-xs font-medium text-slate-500 mb-1">开始日期</label>
-              <input
-                v-model="filterStartDate"
-                type="date"
-                class="w-full px-2 py-2 text-sm border border-slate-200 rounded-lg"
+              <a-date-picker
+                v-model:value="filterStartDate"
+                style="width: 100%"
+                size="default"
+                placeholder="选择日期"
               />
             </div>
           </div>
@@ -153,92 +173,80 @@
       <div
         class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col"
       >
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm whitespace-nowrap">
-            <thead class="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th class="px-6 py-4 font-semibold text-slate-700">文件名称</th>
-                <th class="px-4 py-4 font-semibold text-slate-700">语言</th>
-                <th class="px-4 py-4 font-semibold text-slate-700">简码</th>
-                <th class="px-4 py-4 font-semibold text-slate-700">关联</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">绑定设备分类</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">绑定设备型号</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">上传日期</th>
-                <th class="px-4 py-4 font-semibold text-slate-700">上传人</th>
-                <th class="px-6 py-4 font-semibold text-slate-700 text-right">操作</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="file in filteredFiles"
-                :key="file.id"
-                class="hover:bg-slate-50 transition-colors"
-              >
-                <td class="px-6 py-4 font-medium">
-                  <button
-                    @click="goToFileDetail(file)"
-                    class="text-blue-600 hover:underline flex items-center gap-2 group"
-                  >
-                    <Icon
-                      icon="ant-design:file-text-outlined"
-                      class="w-4 h-4 text-slate-400 group-hover:text-blue-500"
-                    />
-                    {{ file.name }}
-                  </button>
-                </td>
-                <td class="px-4 py-4 text-slate-600">{{ getLanguageLabel(file.language) }}</td>
-                <td class="px-4 py-4 text-slate-500 font-mono text-xs">
-                  {{ getShortLangCode(file.language || '') }}
-                </td>
-                <td class="px-4 py-4">
-                  <span
-                    v-if="isFileLinked(file.id)"
-                    class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded"
-                  >
-                    <Icon icon="ant-design:link-outlined" class="w-3 h-3" /> 是
-                  </span>
-                  <span v-else class="text-xs text-slate-400">否</span>
-                </td>
-                <td class="px-6 py-4 text-slate-500 text-xs" :title="getFileCatNames(file.id)">
-                  {{ getFileCatNames(file.id) || '-' }}
-                </td>
-                <td class="px-6 py-4 text-slate-500 text-xs" :title="getFileDevModels(file.id)">
-                  {{ getFileDevModels(file.id) || '-' }}
-                </td>
-                <td class="px-6 py-4 text-slate-500">{{ file.uploadDate }}</td>
-                <td class="px-4 py-4 text-slate-500">{{ file.creator }}</td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex justify-end gap-2">
-                    <button
-                      @click="handlePreview(file)"
-                      class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
-                      title="在线预览"
-                    >
-                      <Icon icon="ant-design:book-outlined" class="w-4 h-4" />
-                    </button>
-                    <button
-                      @click="goToBindDevices(file)"
-                      class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                      title="关联设备"
-                    >
-                      <Icon icon="ant-design:link-outlined" class="w-4 h-4" />
-                    </button>
-                    <button
-                      @click="handleDelete(file.id)"
-                      class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                      title="删除"
-                    >
-                      <Icon icon="ant-design:delete-outlined" class="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="filteredFiles.length === 0">
-                <td colspan="9" class="text-center py-12 text-slate-400">暂无数据</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <a-table
+          :dataSource="filteredFiles"
+          :columns="fileColumns"
+          :pagination="{
+            pageSize: 10,
+            showSizeChanger: true,
+            showTotal: (total) => `共 ${total} 条`,
+          }"
+          row-key="id"
+          size="middle"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'name'">
+              <a-button type="link" @click="goToFileDetail(record)" class="p-0 h-auto">
+                <FileTextOutlined class="mr-2" />
+                {{ record.name }}
+              </a-button>
+            </template>
+            <template v-else-if="column.key === 'language'">
+              {{ getLanguageLabel(record.language) }}
+            </template>
+            <template v-else-if="column.key === 'langCode'">
+              <span class="font-mono text-xs">{{ getShortLangCode(record.language || '') }}</span>
+            </template>
+            <template v-else-if="column.key === 'linked'">
+              <a-tag v-if="isFileLinked(record.id)" color="success"> <LinkOutlined /> 是 </a-tag>
+              <span v-else class="text-slate-400">否</span>
+            </template>
+            <template v-else-if="column.key === 'categories'">
+              <span :title="getFileCatNames(record.id)">
+                {{ getFileCatNames(record.id) || '-' }}
+              </span>
+            </template>
+            <template v-else-if="column.key === 'models'">
+              <span :title="getFileDevModels(record.id)">
+                {{ getFileDevModels(record.id) || '-' }}
+              </span>
+            </template>
+            <template v-else-if="column.key === 'action'">
+              <a-space :size="8">
+                <a-button type="text" size="small" @click="handlePreview(record)" title="在线预览">
+                  <template #icon>
+                    <BookOutlined />
+                  </template>
+                </a-button>
+                <a-button
+                  type="text"
+                  size="small"
+                  @click="goToBindDevices(record)"
+                  title="关联设备"
+                >
+                  <template #icon>
+                    <LinkOutlined />
+                  </template>
+                </a-button>
+                <a-popconfirm
+                  title="确定删除该文件吗？"
+                  ok-text="确定"
+                  cancel-text="取消"
+                  @confirm="handleDelete(record.id)"
+                >
+                  <a-button type="text" danger size="small" title="删除">
+                    <template #icon>
+                      <DeleteOutlined />
+                    </template>
+                  </a-button>
+                </a-popconfirm>
+              </a-space>
+            </template>
+          </template>
+          <template #emptyText>
+            <a-empty description="暂无数据" />
+          </template>
+        </a-table>
       </div>
     </template>
 
@@ -248,18 +256,15 @@
       class="h-full flex flex-col space-y-4 animate-in fade-in slide-in-from-right-4 duration-300"
     >
       <div class="flex items-center gap-4 border-b border-slate-200 pb-4 mb-2">
-        <button
-          @click="backToList"
-          class="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
-        >
-          <Icon icon="ant-design:arrow-left-outlined" class="w-5 h-5" />
-        </button>
+        <a-button shape="circle" @click="backToList">
+          <template #icon>
+            <ArrowLeftOutlined />
+          </template>
+        </a-button>
         <div>
           <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
             {{ selectedFileForDetail.name }}
-            <span class="text-sm font-normal px-2 py-0.5 bg-slate-100 rounded text-slate-500">{{
-              selectedFileForDetail.version
-            }}</span>
+            <a-tag color="default">{{ selectedFileForDetail.version }}</a-tag>
           </h1>
           <p class="text-sm text-slate-500">文档详细信息与设备关联管理</p>
         </div>
@@ -325,48 +330,32 @@
             关联设备概览 ({{ fileLinkedDevices.length }})
           </h3>
           <div class="flex gap-2">
-            <button
-              @click="goToBindDevices(selectedFileForDetail)"
-              class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm"
-            >
-              <Icon icon="ant-design:link-outlined" class="w-4 h-4" />
+            <a-button type="primary" @click="goToBindDevices(selectedFileForDetail)">
+              <template #icon>
+                <LinkOutlined />
+              </template>
               关联更多设备
-            </button>
+            </a-button>
           </div>
         </div>
 
         <div class="flex-1 overflow-x-auto">
-          <table class="w-full text-left text-sm whitespace-nowrap">
-            <thead class="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th class="px-6 py-3 font-semibold text-slate-700">设备名称</th>
-                <th class="px-6 py-3 font-semibold text-slate-700">设备分类</th>
-                <th class="px-6 py-3 font-semibold text-slate-700">设备型号</th>
-                <th class="px-6 py-3 font-semibold text-slate-700">创建时间</th>
-                <th class="px-6 py-3 font-semibold text-slate-700">创建人</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="device in fileLinkedDevices"
-                :key="device.id"
-                class="hover:bg-slate-50 transition-colors"
-              >
-                <td class="px-6 py-4 font-medium text-slate-800">{{ device.name }}</td>
-                <td class="px-6 py-4 text-slate-500">
-                  <span class="bg-slate-100 px-2 py-0.5 rounded text-xs">{{
-                    getCategoryDisplay(device.categoryId)
-                  }}</span>
-                </td>
-                <td class="px-6 py-4 text-slate-500">{{ device.model }}</td>
-                <td class="px-6 py-4 text-slate-500">{{ device.createdAt }}</td>
-                <td class="px-6 py-4 text-slate-500">{{ device.creator }}</td>
-              </tr>
-              <tr v-if="fileLinkedDevices.length === 0">
-                <td colspan="5" class="py-12 text-center text-slate-400">暂未关联任何设备</td>
-              </tr>
-            </tbody>
-          </table>
+          <a-table
+            :dataSource="fileLinkedDevices"
+            :columns="linkedDeviceColumns"
+            :pagination="false"
+            row-key="id"
+            size="middle"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'categoryId'">
+                <a-tag color="default">{{ getCategoryDisplay(record.categoryId) }}</a-tag>
+              </template>
+            </template>
+            <template #emptyText>
+              <a-empty description="暂未关联任何设备" />
+            </template>
+          </a-table>
         </div>
       </div>
     </div>
@@ -378,12 +367,11 @@
     >
       <div class="flex items-center justify-between border-b border-slate-200 pb-4">
         <div class="flex items-center gap-4">
-          <button
-            @click="backToDetail"
-            class="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
-          >
-            <Icon icon="ant-design:arrow-left-outlined" class="w-5 h-5" />
-          </button>
+          <a-button shape="circle" @click="backToDetail">
+            <template #icon>
+              <ArrowLeftOutlined />
+            </template>
+          </a-button>
           <div>
             <h1 class="text-xl font-bold text-slate-800">关联更多设备</h1>
             <p class="text-sm text-slate-500">
@@ -392,22 +380,15 @@
             </p>
           </div>
         </div>
-        <div class="flex gap-3">
-          <button
-            @click="backToDetail"
-            class="px-5 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium"
-          >
-            取消
-          </button>
-          <button
-            @click="saveDeviceBindings"
-            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm font-medium flex items-center gap-2"
-          >
-            <Icon icon="ant-design:save-outlined" class="w-4 h-4" /> 保存关联 ({{
-              selectedDevicesForBind.size
-            }})
-          </button>
-        </div>
+        <a-space :size="12">
+          <a-button @click="backToDetail">取消</a-button>
+          <a-button type="primary" @click="saveDeviceBindings">
+            <template #icon>
+              <SaveOutlined />
+            </template>
+            保存关联 ({{ selectedDevicesForBind.size }})
+          </a-button>
+        </a-space>
       </div>
 
       <!-- Filter Bar -->
@@ -416,29 +397,25 @@
       >
         <div class="w-48">
           <label class="block text-xs font-medium text-slate-500 mb-1">设备名称</label>
-          <input
-            v-model="bindDevName"
-            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="搜索设备名..."
-          />
+          <a-input v-model:value="bindDevName" placeholder="搜索设备名..." allow-clear />
         </div>
         <div class="w-40">
           <label class="block text-xs font-medium text-slate-500 mb-1">设备分类</label>
-          <select
-            v-model="bindDevCategory"
-            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+          <a-select
+            v-model:value="bindDevCategory"
+            placeholder="全部"
+            allow-clear
+            style="width: 100%"
           >
-            <option value="">全部</option>
-            <option v-for="c in categories" :key="c.id" :value="c.name">{{ c.name }}</option>
-          </select>
+            <a-select-option value="">全部</a-select-option>
+            <a-select-option v-for="c in categories" :key="c.id" :value="c.name">
+              {{ c.name }}
+            </a-select-option>
+          </a-select>
         </div>
         <div class="w-40">
           <label class="block text-xs font-medium text-slate-500 mb-1">设备型号</label>
-          <input
-            v-model="bindDevModel"
-            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="搜索型号..."
-          />
+          <a-input v-model:value="bindDevModel" placeholder="搜索型号..." allow-clear />
         </div>
       </div>
 
@@ -446,77 +423,56 @@
       <div
         class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col"
       >
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm whitespace-nowrap">
-            <thead class="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th class="px-6 py-4 font-semibold text-slate-700 w-16 text-center">选择</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">设备名称</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">分类</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">型号</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">序列号</th>
-                <th class="px-6 py-4 font-semibold text-slate-700">创建时间</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="device in filteredDevicesForBind"
-                :key="device.id"
-                :class="[
-                  'hover:bg-slate-50 transition-colors cursor-pointer',
-                  selectedDevicesForBind.has(device.id) ? 'bg-indigo-50/30' : '',
-                ]"
-                @click="toggleDeviceSelection(device.id)"
-              >
-                <td class="px-6 py-4 text-center">
-                  <input
-                    type="checkbox"
-                    :checked="selectedDevicesForBind.has(device.id)"
-                    @change="toggleDeviceSelection(device.id)"
-                    class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
-                  />
-                </td>
-                <td class="px-6 py-4 font-medium text-slate-900">{{ device.name }}</td>
-                <td class="px-6 py-4 text-slate-500">
-                  <span class="bg-slate-100 px-2 py-0.5 rounded text-xs">{{
-                    getCategoryDisplay(device.categoryId)
-                  }}</span>
-                </td>
-                <td class="px-6 py-4 text-slate-500">{{ device.model }}</td>
-                <td class="px-6 py-4 text-slate-500 font-mono text-xs">{{ device.sn }}</td>
-                <td class="px-6 py-4 text-slate-500">{{ device.createdAt }}</td>
-              </tr>
-              <tr v-if="filteredDevicesForBind.length === 0">
-                <td colspan="6" class="text-center py-12 text-slate-400">暂无匹配设备</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <a-table
+          :dataSource="filteredDevicesForBind"
+          :columns="deviceColumns"
+          :pagination="{ pageSize: 10 }"
+          row-key="id"
+          size="middle"
+          :row-class-name="
+            (record) => (selectedDevicesForBind.has(record.id) ? 'bg-indigo-50' : '')
+          "
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'selected'">
+              <a-checkbox
+                :checked="selectedDevicesForBind.has(record.id)"
+                @change="toggleDeviceSelection(record.id)"
+              />
+            </template>
+            <template v-else-if="column.key === 'categoryId'">
+              <a-tag color="default">{{ getCategoryDisplay(record.categoryId) }}</a-tag>
+            </template>
+            <template v-else-if="column.key === 'sn'">
+              <span class="font-mono text-xs">{{ record.sn }}</span>
+            </template>
+          </template>
+          <template #emptyText>
+            <a-empty description="暂无匹配设备" />
+          </template>
+        </a-table>
       </div>
     </div>
 
     <!-- 上传模态框 -->
-    <NexusModal
+    <Modal
       v-model:visible="isEditModalOpen"
       title="上传文件"
       width="1000px"
-      @close="isEditModalOpen = false"
+      :footer="null"
+      @cancel="isEditModalOpen = false"
     >
       <div class="flex flex-col gap-6 p-2">
-        <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">
-          <div class="p-2 bg-blue-100 rounded-full text-blue-600">
-            <Icon icon="ant-design:file-text-outlined" class="w-5 h-5" />
-          </div>
-          <div class="text-sm text-blue-800">
-            <p class="font-bold mb-1">文件命名规范</p>
+        <a-alert message="文件命名规范" type="info" show-icon>
+          <template #description>
             <p>
               格式:
               <span class="font-mono bg-blue-100 px-1 rounded">TD-RND-{Category}-{Seq}-{Lang}</span>
               (例如: TD-RND-CF-001-cn)
             </p>
-            <p class="mt-1 opacity-80">系统将自动校验分类简码与语言后缀的一致性。</p>
-          </div>
-        </div>
+            <p class="mt-1">系统将自动校验分类简码与语言后缀的一致性。</p>
+          </template>
+        </a-alert>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Left Column -->
@@ -525,34 +481,33 @@
               <label class="block text-sm font-medium text-slate-700 mb-1.5"
                 >文件名称 <span class="text-red-500">*</span></label
               >
-              <input
-                v-model="uploadForm.name"
-                class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="输入文件名..."
-              />
+              <a-input v-model:value="uploadForm.name" placeholder="输入文件名..." size="large" />
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">文件语言</label>
-                <select
-                  v-model="uploadForm.language"
+                <a-select
+                  v-model:value="uploadForm.language"
                   @change="handleLanguageChange"
-                  class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                  placeholder="-- 选择语言 --"
+                  size="large"
+                  style="width: 100%"
                 >
-                  <option value="">-- 选择语言 --</option>
-                  <option v-for="l in LANGUAGE_OPTIONS" :key="l.code" :value="l.code">
+                  <a-select-option value="">-- 选择语言 --</a-select-option>
+                  <a-select-option v-for="l in LANGUAGE_OPTIONS" :key="l.code" :value="l.code">
                     {{ l.label }}
-                  </option>
-                </select>
+                  </a-select-option>
+                </a-select>
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">语言简码</label>
-                <input
+                <a-input
                   :value="uploadForm.langCode"
                   disabled
-                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-500 font-mono"
                   placeholder="自动生成"
+                  size="large"
+                  class="font-mono"
                 />
               </div>
             </div>
@@ -560,19 +515,15 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">文件类型</label>
-                <select
-                  v-model="uploadForm.manualType"
-                  class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                >
-                  <option v-for="(v, k) in MANUAL_TYPE_MAP" :key="k" :value="k">{{ v }}</option>
-                </select>
+                <a-select v-model:value="uploadForm.manualType" size="large" style="width: 100%">
+                  <a-select-option v-for="(v, k) in MANUAL_TYPE_MAP" :key="k" :value="k">
+                    {{ v }}
+                  </a-select-option>
+                </a-select>
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">版本号</label>
-                <input
-                  v-model="uploadForm.version"
-                  class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                />
+                <a-input v-model:value="uploadForm.version" size="large" />
               </div>
             </div>
           </div>
@@ -582,62 +533,62 @@
             <!-- Step 1: Category -->
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1.5">设备分类 (筛选)</label>
-              <select
-                v-model="uploadForm.categoryId"
+              <a-select
+                v-model:value="uploadForm.categoryId"
                 @change="handleCategoryChange"
-                class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                placeholder="-- 请先选择分类 --"
+                size="large"
+                style="width: 100%"
               >
-                <option value="">-- 请先选择分类 --</option>
-                <option v-for="c in categories" :key="c.id" :value="c.id">
+                <a-select-option value="">-- 请先选择分类 --</a-select-option>
+                <a-select-option v-for="c in categories" :key="c.id" :value="c.id">
                   {{ c.name }} ({{ c.description }})
-                </option>
-              </select>
+                </a-select-option>
+              </a-select>
             </div>
 
             <!-- Step 2: Model (Filtered by Category) -->
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1.5">设备型号 (筛选)</label>
-              <select
-                v-model="uploadForm.deviceModel"
+              <a-select
+                v-model:value="uploadForm.deviceModel"
                 :disabled="!uploadForm.categoryId"
-                class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-slate-50 disabled:text-slate-400"
+                placeholder="-- 请选择型号 --"
+                size="large"
+                style="width: 100%"
               >
-                <option value="">-- 请选择型号 --</option>
-                <option v-for="m in availableModels" :key="m" :value="m">{{ m }}</option>
-              </select>
+                <a-select-option value="">-- 请选择型号 --</a-select-option>
+                <a-select-option v-for="m in availableModels" :key="m" :value="m">
+                  {{ m }}
+                </a-select-option>
+              </a-select>
             </div>
 
             <!-- Step 3: Device (Filtered by Category & Model) -->
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1.5">关联设备名称</label>
-              <select
-                v-model="uploadForm.deviceId"
+              <a-select
+                v-model:value="uploadForm.deviceId"
                 :disabled="!uploadForm.deviceModel"
-                class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-slate-50 disabled:text-slate-400"
+                placeholder="-- 选择具体设备 --"
+                size="large"
+                style="width: 100%"
               >
-                <option value="">-- 选择具体设备 --</option>
-                <option v-for="d in availableDevices" :key="d.id" :value="d.id">
+                <a-select-option value="">-- 选择具体设备 --</a-select-option>
+                <a-select-option v-for="d in availableDevices" :key="d.id" :value="d.id">
                   {{ d.name }} ({{ d.sn }})
-                </option>
-              </select>
+                </a-select-option>
+              </a-select>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">上传人</label>
-                <input
-                  :value="uploadForm.uploader"
-                  disabled
-                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-500"
-                />
+                <a-input :value="uploadForm.uploader" disabled size="large" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">上传时间</label>
-                <input
-                  :value="uploadForm.uploadTime"
-                  disabled
-                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-500"
-                />
+                <a-input :value="uploadForm.uploadTime" disabled size="large" />
               </div>
             </div>
           </div>
@@ -647,43 +598,66 @@
         <div class="flex items-center justify-between pt-6 border-t border-slate-100">
           <div class="flex items-center gap-3">
             <input ref="fileInputRef" type="file" class="hidden" @change="handleFileSelect" />
-            <button
-              @click="$refs.fileInputRef?.click()"
-              class="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700 text-sm font-medium flex items-center gap-2"
-            >
-              <Icon icon="ant-design:file-outlined" class="w-4 h-4" />
+            <a-button @click="$refs.fileInputRef?.click()">
+              <template #icon>
+                <FileOutlined />
+              </template>
               {{ rawFile ? '更换文件' : '选择文件' }}
-            </button>
+            </a-button>
             <span v-if="rawFile" class="text-sm text-slate-600"
               >{{ rawFile.name }} ({{ (rawFile.size / 1024).toFixed(1) }} KB)</span
             >
           </div>
 
-          <div class="flex gap-3">
-            <button
-              @click="isEditModalOpen = false"
-              class="px-5 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
-            >
-              取消
-            </button>
-            <button
-              @click="handleSaveUpload"
-              class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-md shadow-blue-200 transition-all flex items-center gap-2"
-            >
-              <Icon icon="ant-design:cloud-upload-outlined" class="w-4 h-4" />
+          <a-space :size="12">
+            <a-button @click="isEditModalOpen = false">取消</a-button>
+            <a-button type="primary" @click="handleSaveUpload">
+              <template #icon>
+                <CloudUploadOutlined />
+              </template>
               确认上传
-            </button>
-          </div>
+            </a-button>
+          </a-space>
         </div>
       </div>
-    </NexusModal>
+    </Modal>
   </div>
 </template>
 
 <script lang="ts" setup>
   import { ref, reactive, computed } from 'vue'
-  import { Icon } from '/@/components/Icon'
-  import NexusModal from '../components/NexusModal.vue'
+  import {
+    Input as AInput,
+    Select as ASelect,
+    Button as AButton,
+    Table as ATable,
+    Modal,
+    DatePicker as ADatePicker,
+    Checkbox as ACheckbox,
+    Tag as ATag,
+    Empty as AEmpty,
+    Popconfirm as APopconfirm,
+    Space as ASpace,
+    Alert as AAlert,
+    message,
+  } from 'ant-design-vue'
+  import type { TableColumnsType } from 'ant-design-vue'
+  import {
+    UploadOutlined,
+    SearchOutlined,
+    LinkOutlined,
+    DeleteOutlined,
+    BookOutlined,
+    ArrowLeftOutlined,
+    SaveOutlined,
+    FileTextOutlined,
+    CloudUploadOutlined,
+    FileOutlined,
+    ZoomInOutlined,
+    ZoomOutOutlined,
+    FullscreenOutlined,
+    DownloadOutlined,
+  } from '@ant-design/icons-vue'
   import { MANUAL_TYPE_MAP, LANGUAGE_OPTIONS } from '../constants'
   import type { Device, DocFile, Category } from '../types'
 
@@ -902,21 +876,147 @@
   const rawFile = ref<File | null>(null)
   const fileInputRef = ref<HTMLInputElement | null>(null)
 
-  // Toast 状态
-  const toast = reactive({
-    show: false,
-    msg: '',
-    type: 'success' as 'success' | 'error',
-  })
-
+  // Toast 消息提示
   const showToast = (msg: string, type: 'success' | 'error') => {
-    toast.show = true
-    toast.msg = msg
-    toast.type = type
-    setTimeout(() => {
-      toast.show = false
-    }, 3000)
+    if (type === 'success') {
+      message.success(msg)
+    } else {
+      message.error(msg)
+    }
   }
+
+  // 表格列配置
+  const fileColumns: TableColumnsType = [
+    {
+      title: '文件名称',
+      dataIndex: 'name',
+      key: 'name',
+      width: 300,
+    },
+    {
+      title: '语言',
+      dataIndex: 'language',
+      key: 'language',
+      width: 120,
+    },
+    {
+      title: '简码',
+      dataIndex: 'langCode',
+      key: 'langCode',
+      width: 80,
+    },
+    {
+      title: '关联',
+      dataIndex: 'linked',
+      key: 'linked',
+      width: 80,
+    },
+    {
+      title: '绑定设备分类',
+      dataIndex: 'categories',
+      key: 'categories',
+      width: 150,
+    },
+    {
+      title: '绑定设备型号',
+      dataIndex: 'models',
+      key: 'models',
+      width: 150,
+    },
+    {
+      title: '上传日期',
+      dataIndex: 'uploadDate',
+      key: 'uploadDate',
+      width: 120,
+    },
+    {
+      title: '上传人',
+      dataIndex: 'creator',
+      key: 'creator',
+      width: 100,
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 150,
+      fixed: 'right',
+    },
+  ]
+
+  // 设备绑定表格列配置
+  const deviceColumns: TableColumnsType = [
+    {
+      title: '选择',
+      dataIndex: 'selected',
+      key: 'selected',
+      width: 60,
+      align: 'center',
+    },
+    {
+      title: '设备名称',
+      dataIndex: 'name',
+      key: 'name',
+      width: 200,
+    },
+    {
+      title: '分类',
+      dataIndex: 'categoryId',
+      key: 'categoryId',
+      width: 120,
+    },
+    {
+      title: '型号',
+      dataIndex: 'model',
+      key: 'model',
+      width: 150,
+    },
+    {
+      title: '序列号',
+      dataIndex: 'sn',
+      key: 'sn',
+      width: 180,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 120,
+    },
+  ]
+
+  // 关联设备表格列配置
+  const linkedDeviceColumns: TableColumnsType = [
+    {
+      title: '设备名称',
+      dataIndex: 'name',
+      key: 'name',
+      width: 200,
+    },
+    {
+      title: '设备分类',
+      dataIndex: 'categoryId',
+      key: 'categoryId',
+      width: 150,
+    },
+    {
+      title: '设备型号',
+      dataIndex: 'model',
+      key: 'model',
+      width: 150,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 150,
+    },
+    {
+      title: '创建人',
+      dataIndex: 'creator',
+      key: 'creator',
+      width: 120,
+    },
+  ]
 
   // 辅助函数
   const getShortLangCode = (fullCode: string): string => {
@@ -1204,10 +1304,6 @@
 </script>
 
 <style scoped>
-  .animate-in {
-    animation: slideIn 0.3s ease-out;
-  }
-
   @keyframes slideIn {
     from {
       opacity: 0;
@@ -1220,22 +1316,16 @@
     }
   }
 
-  .fade-in {
-    animation: fadeIn 0.3s ease-out;
-  }
-
   @keyframes fadeIn {
     from {
       opacity: 0;
+      transform: scale(0.95);
     }
 
     to {
       opacity: 1;
+      transform: scale(1);
     }
-  }
-
-  .slide-in-from-top-4 {
-    animation: slideInFromTop 0.3s ease-out;
   }
 
   @keyframes slideInFromTop {
@@ -1248,10 +1338,6 @@
     }
   }
 
-  .slide-in-from-right-4 {
-    animation: slideInFromRight 0.3s ease-out;
-  }
-
   @keyframes slideInFromRight {
     from {
       transform: translateX(16px);
@@ -1260,5 +1346,89 @@
     to {
       transform: translateX(0);
     }
+  } /* PDF 预览器 - 最高层级 */
+  .pdf-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background-color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .pdf-viewer-header {
+    height: 64px;
+    background-color: #1e293b;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    flex-shrink: 0;
+    backdrop-filter: blur(10px);
+  }
+
+  .pdf-viewer-btn,
+  .pdf-viewer-btn-back {
+    transition: all 0.2s ease;
+  }
+
+  .pdf-viewer-btn:hover,
+  .pdf-viewer-btn-back:hover {
+    background-color: rgba(71, 85, 105, 0.6) !important;
+    transform: scale(1.08);
+  }
+
+  .pdf-viewer-btn:active,
+  .pdf-viewer-btn-back:active {
+    transform: scale(0.95);
+  }
+
+  .pdf-viewer-content {
+    flex: 1;
+    background-color: #64748b;
+    overflow-y: auto;
+    padding: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .pdf-viewer-paper {
+    background: white;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 56rem;
+    min-height: 1200px;
+    padding: 64px;
+    border-radius: 2px;
+    margin-bottom: 40px;
+  }
+
+  /* 通用动画 */
+  .animate-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .slide-in-from-top-4 {
+    animation: slideInFromTop 0.3s ease-out;
+  }
+
+  .slide-in-from-right-4 {
+    animation: slideInFromRight 0.3s ease-out;
+  }
+
+  /* 表格选中行样式 */
+  :deep(.bg-indigo-50) {
+    background-color: #eef2ff !important;
+  }
+
+  :deep(.bg-indigo-50:hover) {
+    background-color: #e0e7ff !important;
   }
 </style>
